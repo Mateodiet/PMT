@@ -1,0 +1,67 @@
+<!-- <button class="btn btn-md btn-outline-secondary me-4 float-end mt-2" (click)="open(content)">Create user</button> -->
+
+<table class="table">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">Name</th>
+        <th scope="col">Email</th>
+        <th scope="col">Role</th>
+        <th scope="col">Actions</th>
+      </tr>
+    </thead>
+    <tbody class="table-group-divider">
+        @for (user of users; track user) {
+      <tr>
+        <th scope="row">1</th>
+        <td>{{user.name}}</td>
+        <td>{{user.email}}</td>
+        <td>{{user.role}}</td>
+        <td>
+            <div class="col">
+                <div ngbDropdown class="d-inline-block">
+                    <button type="button" class="btn bg-none border-none" id="dropdownBasic1" ngbDropdownToggle>
+                        Actions
+                    </button>
+                    <div ngbDropdownMenu aria-labelledby="dropdownBasic1">
+                        <button ngbDropdownItem (click)="open(content,user)">Edit</button>
+                        <button ngbDropdownItem (click)="deleteUserById(user.email!)">Delete User</button>
+                    </div>
+                </div>
+            </div>
+        </td>
+      </tr>
+    }
+    </tbody>
+  </table>
+
+<ng-template #content let-c="close" let-d="dismiss">
+	<div class="modal-header">
+		<h4 class="modal-title" id="modal-basic-title">Hi there!</h4>
+		<button type="button" class="btn-close" aria-label="Close" (click)="d('Cross click')"></button>
+	</div>
+	<div class="modal-body">
+		<form [formGroup]="userForm">
+        <div class="mb-3">
+          <label for="inputPassword">Password</label>
+          <input type="password" class="form-control" formControlName="password"  id="inputPassword">
+        </div>
+        <div class="mb-3">
+          <label>Role</label>
+          <select class="form-select" aria-label="Default select example" formControlName="role">
+            <option [value]="'admin'">Admin</option>
+            <option [value]="'manager'">Manager</option>
+            <option [value]="'developer'">Developer</option>
+            <option [value]="'designer'">Designer</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label for="exampleFormControlInput1" class="form-label">Contact number</label>
+          <input type="text" class="form-control" formControlName="contactNumber" id="exampleFormControlInput1" placeholder="Contact number">
+        </div>
+    </form>
+	</div>
+	<div class="modal-footer">
+		<button type="button" class="btn btn-outline-secondary" (click)="saveUser()">Update User</button>
+	</div>
+</ng-template>

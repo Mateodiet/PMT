@@ -1,0 +1,67 @@
+<button class="btn btn-md btn-outline-secondary me-4 float-end mt-2" (click)="open(content,false)">Create project</button>
+
+<table class="table">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">Name</th>
+        <th scope="col">Description</th>
+        <th scope="col">Status</th>
+        <th scope="col">Actions</th>
+      </tr>
+    </thead>
+    <tbody class="table-group-divider">
+        @for (proj of projects; track proj;let i = $index) {
+            <tr>
+                <th scope="row">{{i + 1}}</th>
+                <td>{{proj.projectName}}</td>
+                <td>{{proj.projectDescription}}</td>
+                <td>{{proj.projectStatus}}</td>
+                <td>	
+                    <div class="col">
+                        <div ngbDropdown class="d-inline-block">
+                            <button type="button" class="btn bg-none border-none" id="dropdownBasic1" ngbDropdownToggle>
+                                Actions
+                            </button>
+                            <div ngbDropdownMenu aria-labelledby="dropdownBasic1">
+                                <button ngbDropdownItem [routerLink]="['../project/',proj.projectName]">View</button>
+                                <button ngbDropdownItem (click)="open(content,true,proj)">Edit</button>
+                                <button ngbDropdownItem (click)="deleteProject(proj.projectName!)">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        }
+    </tbody>
+  </table>
+
+  <ng-template #content let-c="close" let-d="dismiss">
+	<div class="modal-header">
+		<h4 class="modal-title" id="modal-basic-title">Create Project</h4>
+		<button type="button" class="btn-close" aria-label="Close" (click)="d('Cross click')"></button>
+	</div>
+	<div class="modal-body">
+		<form [formGroup]="projectForm">
+            <div class="row">
+              @if(!isEdit){
+                <div class="mb-3">
+                  <label for="exampleFormControlInput1" class="form-label">Project name</label>
+                  <input type="text"  formControlName="projectName" class="form-control" id="exampleFormControlInput1" placeholder="Write project name">
+                </div>
+              }
+              <div class="mb-3">
+                <label for="exampleFormControlTextarea1" class="form-label">Project description</label>
+                <textarea class="form-control" formControlName="projectDescription" id="exampleFormControlTextarea1" rows="3"></textarea>
+              </div>              
+              <div class="mb-3">
+                <label for="exampleFormControlInput1" class="form-label">Email</label>
+                <input type="email" readonly formControlName="creatorEmail" class="form-control" id="exampleFormControlInput1" placeholder="Write email">
+              </div>
+            </div>
+          </form>
+	</div>
+	<div class="modal-footer">
+		<button type="button" class="btn btn-outline-secondary" (click)="saveForm()">{{isEdit ? 'Update' : 'Create'}} project</button>
+	</div>
+</ng-template>

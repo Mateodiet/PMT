@@ -1,0 +1,14 @@
+<div class="sidebar">
+    <div routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" routerLink="/home/dashboard" class="cursor-pointer">
+        <p>Home</p>
+    </div>
+    <div routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" routerLink="/home/users" class="cursor-pointer">
+        <p>Users</p>
+    </div>
+    <div routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" routerLink="/home/projects" class="cursor-pointer">
+        <p>Projects</p>
+    </div>
+    <div class="logout">
+        <p class="ms-1" (click)="logout()">Logout</p>
+    </div>
+</div>

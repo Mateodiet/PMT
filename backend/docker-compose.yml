@@ -1,0 +1,101 @@
+# ============================================
+# PMT - Docker Compose
+# Orchestration des services
+# ============================================
+
+version: '3.8'
+
+services:
+  # ============================================
+  # Base de données MySQL
+  # ============================================
+  database:
+    image: mysql:8.0
+    container_name: pmt-database
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: pmt_db
+      MYSQL_USER: pmt_user
+      MYSQL_PASSWORD: pmt_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./src/main/resources/data.sql:/docker-entrypoint-initdb.d/02-data.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot_password"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - pmt-network
+
+  # ============================================
+  # Backend Spring Boot
+  # ============================================
+  backend:
+    image: avertak/pmt-backend:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pmt-backend
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://database:3306/pmt_db
+      SPRING_DATASOURCE_USERNAME: pmt_user
+      SPRING_DATASOURCE_PASSWORD: pmt_password
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_PROFILES_ACTIVE: prod
+    depends_on:
+      database:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - pmt-network
+
+  # ============================================
+  # Frontend Angular (Nginx)
+  # ============================================
+  frontend:
+    image: avertak/pmt-frontend:latest
+    build:
+      context: ../FE_pmt
+      dockerfile: Dockerfile
+    container_name: pmt-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - pmt-network
+
+# ============================================
+# Volumes persistants
+# ============================================
+volumes:
+  mysql_data:
+    driver: local
+
+# ============================================
+# Réseau Docker
+# ============================================
+networks:
+  pmt-network:
+    driver: bridge

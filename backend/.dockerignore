@@ -1,0 +1,28 @@
+# Build artifacts
+target/
+!target/*.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+
+# Git
+.git/
+.gitignore
+
+# Maven
+.mvn/wrapper/maven-wrapper.jar
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test reports (not needed in Docker image)
+**/surefire-reports/
+**/coverage-reports/

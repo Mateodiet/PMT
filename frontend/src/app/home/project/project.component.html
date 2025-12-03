@@ -1,0 +1,116 @@
+<button class="btn btn-md btn-outline-secondary me-4 float-end mt-2" (click)="open(content,false)">Create task</button>
+
+<div class="container-fuild">
+  <h2 class="mt-2">Project</h2>
+  <div class="row p-0 mt-4">
+    <div class="col-4 p-0 mb-2">
+      <span>To do</span>
+      <div class="row">
+        @for (item of todo; track $index) {
+          <div class="col-8 offset-2 mt-3">
+            <div class="d-flex ">
+              <h4>{{item.taskName}}</h4>
+              <div class="col">
+                <div ngbDropdown class="d-inline-block">
+                    <button type="button" class="btn bg-none border-none" id="dropdownBasic1" ngbDropdownToggle>
+                        Actions
+                    </button>
+                    <div ngbDropdownMenu aria-labelledby="dropdownBasic1">
+                        <button ngbDropdownItem (click)="open(content,true,item)">Edit</button>
+                        <button ngbDropdownItem (click)="deletetask(item.taskName)">Delete</button>
+                    </div>
+                </div>
+            </div>
+            </div>
+            <p>{{item.taskDescription}}</p>
+          </div>
+        }
+      </div>
+    </div>
+    <div class="col-4 p-0 mb-2">
+      <span>In progress</span>
+      <div class="row">
+        @for (item of progg; track $index) {
+          <div class="col-8 offset-2 mt-3">
+            <div class="d-flex ">
+              <h4>{{item.taskName}}</h4>
+              <div class="col">
+                <div ngbDropdown class="d-inline-block">
+                    <button type="button" class="btn bg-none border-none" id="dropdownBasic1" ngbDropdownToggle>
+                        Actions
+                    </button>
+                    <div ngbDropdownMenu aria-labelledby="dropdownBasic1">
+                        <button ngbDropdownItem (click)="open(content,true,item)">Edit</button>
+                        <button ngbDropdownItem (click)="deletetask(item.taskName)">Delete</button>
+                    </div>
+                </div>
+            </div>
+            </div>
+            <p>{{item.taskDescription}}</p>
+          </div>
+        }
+      </div>
+    </div>
+    <div class="col-4 p-0 mb-2">
+      <span>Done</span>
+      <div class="row">
+        @for (item of done; track $index) {
+          <div class="col-8 offset-2 mt-3">
+            <div class="d-flex ">
+              <h4>{{item.taskName}}</h4>
+              <div class="col">
+                <div ngbDropdown class="d-inline-block">
+                    <button type="button" class="btn bg-none border-none" id="dropdownBasic1" ngbDropdownToggle>
+                        Actions
+                    </button>
+                    <div ngbDropdownMenu aria-labelledby="dropdownBasic1">
+                        <button ngbDropdownItem (click)="open(content,true,item)">Edit</button>
+                        <button ngbDropdownItem (click)="deletetask(item.taskName)">Delete</button>
+                    </div>
+                </div>
+            </div>
+            </div>
+            <p>{{item.taskDescription}}</p>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<ng-template #content let-c="close" let-d="dismiss">
+	<div class="modal-header">
+		<h4 class="modal-title" id="modal-basic-title">Hi there!</h4>
+		<button type="button" class="btn-close" aria-label="Close" (click)="d('Cross click')"></button>
+	</div>
+	<div class="modal-body">
+    <form [formGroup]="taskForm">
+      <div class="row">
+        <div class="mb-3">
+          <label for="exampleFormControlInput1" class="form-label">Task title</label>
+          <input type="text" [readonly]="isEdit" formControlName="taskName" class="form-control" id="exampleFormControlInput1" placeholder="Write task title">
+        </div>
+        <div class="mb-3">
+          <label for="exampleFormControlTextarea1" class="form-label">Task description</label>
+          <textarea class="form-control" formControlName="taskDescription" id="exampleFormControlTextarea1" rows="3"></textarea>
+        </div>              
+        <div class="mb-3">
+          <label>Task status</label>
+          <select class="form-select" aria-label="Default select example" formControlName="taskStatus">
+            <option [value]="'TODO'">To do</option>
+            <option [value]="'IN_PROGRESS'">In Progress</option>
+            <option [value]="'DONE'">Done</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label for="exampleFormControlInput1" class="form-label">Email</label>
+          <input type="email" readonly formControlName="creatorEmail" class="form-control" id="exampleFormControlInput1" placeholder="Write email">
+        </div>
+      </div>
+    </form>
+	</div>
+	<div class="modal-footer">
+		<button type="button" class="btn btn-outline-secondary" (click)="saveForm()">Save</button>
+	</div>
+</ng-template>
