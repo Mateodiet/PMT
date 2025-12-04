@@ -93,8 +93,12 @@
             "codeCoverageExclude": [
               "src/polyfills.ts",
               "src/test.ts",
+              "src/main.ts",
               "**/*.module.ts",
-              "**/environments/**"
+              "**/*.routes.ts",
+              "**/environments/**",
+              "**/app.config.ts",
+              "**/app.routes.ts"
             ]
           }
         }
