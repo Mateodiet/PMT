@@ -24,56 +24,66 @@ describe('TaskService', () => {
   });
 
   it('should call createTask endpoint', () => {
-    const mockTask = { taskName: 'Test Task', taskDescription: 'Description' };
+    const mockTask = { taskName: 'Test Task', taskDescription: 'Description', projectName: 'Project1' };
     
-    service.createTask(mockTask).subscribe(response => {
+    service.createTask(mockTask).subscribe((response: any) => {
       expect(response).toBeTruthy();
     });
 
-    const req = httpMock.expectOne(req => req.url.includes('/createtask'));
+    const req = httpMock.expectOne((r) => r.url.includes('/tasks/createtask'));
     expect(req.request.method).toBe('POST');
     req.flush({ success: true });
   });
 
-  it('should call getAllTasks endpoint', () => {
-    service.getAllTasks().subscribe(response => {
+  it('should call updateTask endpoint', () => {
+    const mockTask = { taskDescription: 'Updated Description' };
+    
+    service.updateTask('Test Task', mockTask).subscribe((response: any) => {
       expect(response).toBeTruthy();
     });
 
-    const req = httpMock.expectOne(req => req.url.includes('/getAllTasks'));
-    expect(req.request.method).toBe('GET');
-    req.flush([]);
+    const req = httpMock.expectOne((r) => r.url.includes('/tasks/updateTask'));
+    expect(req.request.method).toBe('PUT');
+    req.flush({ success: true });
   });
 
-  it('should call getTask endpoint', () => {
-    service.getTask('Test Task').subscribe(response => {
+  it('should call deleteTask endpoint', () => {
+    service.deleteTask('Test Task').subscribe((response: any) => {
       expect(response).toBeTruthy();
     });
 
-    const req = httpMock.expectOne(req => req.url.includes('/getTask'));
+    const req = httpMock.expectOne((r) => r.url.includes('/tasks/deleteTask'));
+    expect(req.request.method).toBe('DELETE');
+    req.flush({ success: true });
+  });
+
+  it('should call getTaskByName endpoint', () => {
+    service.getTaskByName('Test Task').subscribe((response: any) => {
+      expect(response).toBeTruthy();
+    });
+
+    const req = httpMock.expectOne((r) => r.url.includes('/tasks/getTask'));
     expect(req.request.method).toBe('GET');
     req.flush({});
   });
 
-  it('should call getTaskByProject endpoint', () => {
-    service.getTaskByProject('Test Project').subscribe(response => {
+  it('should call getTasks endpoint', () => {
+    service.getTasks().subscribe((response: any) => {
       expect(response).toBeTruthy();
     });
 
-    const req = httpMock.expectOne(req => req.url.includes('/getTaskByProject'));
+    const req = httpMock.expectOne((r) => r.url.includes('/tasks/getAllTasks'));
     expect(req.request.method).toBe('GET');
     req.flush([]);
   });
 
-  it('should call assignTask endpoint', () => {
-    const mockAssign = { taskName: 'Test Task', userEmail: 'test@test.com' };
-    
-    service.assignTask(mockAssign).subscribe(response => {
+  it('should call getTasksInProject endpoint', () => {
+    service.getTasksInProject('Test Project').subscribe((response: any) => {
       expect(response).toBeTruthy();
     });
 
-    const req = httpMock.expectOne(req => req.url.includes('/assignTask'));
-    expect(req.request.method).toBe('POST');
-    req.flush({ success: true });
+    const req = httpMock.expectOne((r) => r.url.includes('/tasks/getTaskByProject'));
+    expect(req.request.method).toBe('GET');
+    req.flush([]);
   });
 });

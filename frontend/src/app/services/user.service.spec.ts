@@ -23,47 +23,89 @@ describe('UserService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should call signup endpoint', () => {
-    const mockUser = { email: 'test@test.com', password: 'password123', name: 'Test' };
-    
-    service.signUp(mockUser).subscribe(response => {
-      expect(response).toBeTruthy();
-    });
-
-    const req = httpMock.expectOne(req => req.url.includes('/signup'));
-    expect(req.request.method).toBe('POST');
-    req.flush({ success: true });
-  });
-
-  it('should call login endpoint', () => {
-    const mockLogin = { email: 'test@test.com', password: 'password123' };
-    
-    service.signIn(mockLogin).subscribe(response => {
-      expect(response).toBeTruthy();
-    });
-
-    const req = httpMock.expectOne(req => req.url.includes('/login'));
-    expect(req.request.method).toBe('POST');
-    req.flush({ success: true });
-  });
-
   it('should call getAllUsers endpoint', () => {
-    service.getAllUsers().subscribe(response => {
+    service.getAllUsers().subscribe((response: any) => {
       expect(response).toBeTruthy();
     });
 
-    const req = httpMock.expectOne(req => req.url.includes('/getAllUsers'));
+    const req = httpMock.expectOne((r) => r.url.includes('/user/getAllUsers'));
     expect(req.request.method).toBe('GET');
     req.flush([]);
   });
 
-  it('should call getUserByEmail endpoint', () => {
-    service.getUserByEmail('test@test.com').subscribe(response => {
+  it('should call loginUser endpoint', () => {
+    const mockUser = { email: 'test@test.com', password: 'password123' };
+    
+    service.loginUser(mockUser).subscribe((response: any) => {
       expect(response).toBeTruthy();
     });
 
-    const req = httpMock.expectOne(req => req.url.includes('/getUserByEmail'));
+    const req = httpMock.expectOne((r) => r.url.includes('/user/login'));
+    expect(req.request.method).toBe('POST');
+    req.flush({ success: true });
+  });
+
+  it('should call signUpUser endpoint', () => {
+    const mockUser = { email: 'test@test.com', password: 'password123', name: 'Test' };
+    
+    service.signUpUser(mockUser).subscribe((response: any) => {
+      expect(response).toBeTruthy();
+    });
+
+    const req = httpMock.expectOne((r) => r.url.includes('/user/signup'));
+    expect(req.request.method).toBe('POST');
+    req.flush({ success: true });
+  });
+
+  it('should call getUserById endpoint', () => {
+    service.getUserById('test@test.com').subscribe((response: any) => {
+      expect(response).toBeTruthy();
+    });
+
+    const req = httpMock.expectOne((r) => r.url.includes('/user/getUserByEmail'));
     expect(req.request.method).toBe('GET');
     req.flush({});
+  });
+
+  it('should call deleteUser endpoint', () => {
+    service.deleteUser('test@test.com').subscribe((response: any) => {
+      expect(response).toBeTruthy();
+    });
+
+    const req = httpMock.expectOne((r) => r.url.includes('/user/deleteUser'));
+    expect(req.request.method).toBe('DELETE');
+    req.flush({ success: true });
+  });
+
+  it('should call updateUser endpoint', () => {
+    const mockUser = { name: 'Updated Name' };
+    
+    service.updateUser('test@test.com', mockUser).subscribe((response: any) => {
+      expect(response).toBeTruthy();
+    });
+
+    const req = httpMock.expectOne((r) => r.url.includes('/user/updateUser'));
+    expect(req.request.method).toBe('PUT');
+    req.flush({ success: true });
+  });
+
+  it('should call getDashboardData endpoint', () => {
+    service.getDashboardData().subscribe((response: any) => {
+      expect(response).toBeTruthy();
+    });
+
+    const req = httpMock.expectOne((r) => r.url.includes('/dashboard/getTotalProjects'));
+    expect(req.request.method).toBe('GET');
+    req.flush({});
+  });
+
+  it('should call getDashboardTasks endpoint', () => {
+    service.getDashboardTasks('TODO').subscribe((response: any) => {
+      expect(response).toBeTruthy();
+    });
+
+    const req = httpMock.expectOne((r) => r.url.includes('/dashboard/getTaskByStatus'));
+    expect(req.request.method).toBe('GET');
+    req.flush([]);
   });
 });
