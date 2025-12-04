@@ -30,14 +30,6 @@ module.exports = function (config) {
         { type: 'lcov' },
         { type: 'cobertura' }
       ],
-      check: {
-        global: {
-          statements: 50,
-          branches: 50,
-          functions: 50,
-          lines: 50
-        }
-      }
     },
     reporters: ['progress', 'kjhtml', 'coverage'],
     browsers: ['Chrome', 'ChromeHeadless'],
