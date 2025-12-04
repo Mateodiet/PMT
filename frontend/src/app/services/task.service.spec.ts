@@ -1,10 +1,19 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { TaskService } from './task.service';
+import { task } from '../shared/enum';
 
 describe('TaskService', () => {
   let service: TaskService;
   let httpMock: HttpTestingController;
+
+  const mockTask: task = {
+    taskName: 'Test Task',
+    taskDescription: 'Description',
+    taskStatus: 'TODO',
+    projectName: 'Project1',
+    creatorEmail: 'test@test.com'
+  };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -24,8 +33,6 @@ describe('TaskService', () => {
   });
 
   it('should call createTask endpoint', () => {
-    const mockTask = { taskName: 'Test Task', taskDescription: 'Description', projectName: 'Project1' };
-    
     service.createTask(mockTask).subscribe((response: any) => {
       expect(response).toBeTruthy();
     });
@@ -36,8 +43,6 @@ describe('TaskService', () => {
   });
 
   it('should call updateTask endpoint', () => {
-    const mockTask = { taskDescription: 'Updated Description' };
-    
     service.updateTask('Test Task', mockTask).subscribe((response: any) => {
       expect(response).toBeTruthy();
     });
