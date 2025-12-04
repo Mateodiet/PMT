@@ -24,12 +24,14 @@ import org.springframework.http.HttpStatus;
 import com.project.projectmanagment.entities.bridges.TaskUserBridge;
 import com.project.projectmanagment.entities.project.ProjectEntity;
 import com.project.projectmanagment.entities.task.ProjectTask;
+import com.project.projectmanagment.entities.task.TaskHistory;
 import com.project.projectmanagment.entities.user.UserEntity;
 import com.project.projectmanagment.models.response.BaseResponse;
 import com.project.projectmanagment.models.task.TaskUserAssignModel;
 import com.project.projectmanagment.models.task.TasksModel;
 import com.project.projectmanagment.repositories.project.ProjectRepo;
 import com.project.projectmanagment.repositories.project.ProjectUserBridgeRepo;
+import com.project.projectmanagment.repositories.task.TaskHistoryRepo;
 import com.project.projectmanagment.repositories.task.TaskUserBridgeRepo;
 import com.project.projectmanagment.repositories.task.TasksRepo;
 import com.project.projectmanagment.repositories.user.UserRepo;
@@ -52,6 +54,12 @@ class TaskServiceTest {
 
     @Mock
     private TasksRepo tasksRepo;
+
+    @Mock
+    private TaskHistoryRepo taskHistoryRepo;
+
+    @Mock
+    private EmailService emailService;
 
     @InjectMocks
     private TaskService taskService;
@@ -81,6 +89,7 @@ class TaskServiceTest {
                 .taskName("Test Task")
                 .taskDescription("Test Description")
                 .taskStatus("TODO")
+                .priority("MEDIUM")
                 .projectIdFk(1L)
                 .taskCreatedBy(1L)
                 .taskCreatedAt(new Date(System.currentTimeMillis()))
@@ -90,6 +99,7 @@ class TaskServiceTest {
         testTaskModel.setTaskName("Test Task");
         testTaskModel.setTaskDescription("Test Description");
         testTaskModel.setTaskStatus("TODO");
+        testTaskModel.setPriority("MEDIUM");
         testTaskModel.setProjectName("Test Project");
         testTaskModel.setCreatorEmail("john@test.com");
     }
@@ -103,12 +113,14 @@ class TaskServiceTest {
         when(projectRepo.findByProjectName(anyString())).thenReturn(Optional.of(testProject));
         when(userRepo.findByEmail(anyString())).thenReturn(Optional.of(testUser));
         when(tasksRepo.save(any(ProjectTask.class))).thenReturn(testTask);
+        when(taskHistoryRepo.save(any(TaskHistory.class))).thenReturn(new TaskHistory());
 
         BaseResponse response = taskService.createTask(testTaskModel);
 
         assertEquals(HttpStatus.OK, response.getResponseCode());
         assertEquals("success", response.getResponseDesc());
         verify(tasksRepo, times(1)).save(any(ProjectTask.class));
+        verify(taskHistoryRepo, times(1)).save(any(TaskHistory.class));
     }
 
     @Test
@@ -154,6 +166,7 @@ class TaskServiceTest {
     void deleteTask_Success() {
         when(tasksRepo.findByTaskName(anyString())).thenReturn(Optional.of(testTask));
         when(taskUserBridgeRepo.findByTaskIdFk(anyLong())).thenReturn(Optional.empty());
+        when(taskHistoryRepo.findByTaskIdFkOrderByModifiedAtDesc(anyLong())).thenReturn(Collections.emptyList());
         doNothing().when(tasksRepo).deleteById(anyLong());
 
         BaseResponse response = taskService.deleteTask("Test Task");
@@ -172,6 +185,7 @@ class TaskServiceTest {
 
         when(tasksRepo.findByTaskName(anyString())).thenReturn(Optional.of(testTask));
         when(taskUserBridgeRepo.findByTaskIdFk(anyLong())).thenReturn(Optional.of(bridge));
+        when(taskHistoryRepo.findByTaskIdFkOrderByModifiedAtDesc(anyLong())).thenReturn(Collections.emptyList());
         doNothing().when(taskUserBridgeRepo).deleteByTaskIdFk(anyLong());
         doNothing().when(tasksRepo).deleteById(anyLong());
 
@@ -277,11 +291,15 @@ class TaskServiceTest {
         when(userRepo.findByEmail(anyString())).thenReturn(Optional.of(testUser));
         when(taskUserBridgeRepo.findByUserIdFKAndTaskIdFk(anyLong(), anyLong())).thenReturn(Optional.empty());
         when(taskUserBridgeRepo.save(any(TaskUserBridge.class))).thenReturn(new TaskUserBridge());
+        when(taskHistoryRepo.save(any(TaskHistory.class))).thenReturn(new TaskHistory());
+        when(projectRepo.findById(anyLong())).thenReturn(Optional.of(testProject));
+        doNothing().when(emailService).sendTaskAssignmentNotification(anyString(), anyString(), anyString(), anyString());
 
         BaseResponse response = taskService.assigntask(assignModel);
 
         assertEquals(HttpStatus.OK, response.getResponseCode());
         verify(taskUserBridgeRepo, times(1)).save(any(TaskUserBridge.class));
+        verify(emailService, times(1)).sendTaskAssignmentNotification(anyString(), anyString(), anyString(), anyString());
     }
 
     @Test
@@ -389,6 +407,40 @@ class TaskServiceTest {
         when(tasksRepo.findAll()).thenReturn(Collections.emptyList());
 
         BaseResponse response = taskService.getAssigntask();
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getResponseCode());
+    }
+
+    // ==================== GET TASK HISTORY TESTS ====================
+
+    @Test
+    @DisplayName("Should get task history successfully")
+    void getTaskHistory_Success() {
+        List<TaskHistory> history = Arrays.asList(
+            TaskHistory.builder()
+                .historyId(1L)
+                .taskIdFk(1L)
+                .fieldName("taskStatus")
+                .oldValue("TODO")
+                .newValue("IN_PROGRESS")
+                .build()
+        );
+
+        when(tasksRepo.findByTaskName(anyString())).thenReturn(Optional.of(testTask));
+        when(taskHistoryRepo.findByTaskIdFkOrderByModifiedAtDesc(anyLong())).thenReturn(history);
+
+        BaseResponse response = taskService.getTaskHistory("Test Task");
+
+        assertEquals(HttpStatus.OK, response.getResponseCode());
+        assertNotNull(response.getData());
+    }
+
+    @Test
+    @DisplayName("Should return not found for task history of non-existent task")
+    void getTaskHistory_TaskNotFound() {
+        when(tasksRepo.findByTaskName(anyString())).thenReturn(Optional.empty());
+
+        BaseResponse response = taskService.getTaskHistory("Unknown Task");
 
         assertEquals(HttpStatus.NOT_FOUND, response.getResponseCode());
     }

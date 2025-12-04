@@ -53,6 +53,9 @@ class ProjectServiceTest {
     @Mock
     private TasksRepo tasksRepo;
 
+    @Mock
+    private EmailService emailService;
+
     @InjectMocks
     private ProjectService projectService;
 
@@ -94,12 +97,14 @@ class ProjectServiceTest {
         when(projectRepo.findByProjectName(anyString())).thenReturn(Optional.empty());
         when(userRepo.findByEmail(anyString())).thenReturn(Optional.of(testUser));
         when(projectRepo.save(any(ProjectEntity.class))).thenReturn(testProject);
+        when(projectUserBridgeRepo.save(any(ProjectUserBridge.class))).thenReturn(new ProjectUserBridge());
 
         BaseResponse response = projectService.createProject(testProjectModel);
 
         assertEquals(HttpStatus.OK, response.getResponseCode());
         assertEquals("Success", response.getResponseDesc());
         verify(projectRepo, times(1)).save(any(ProjectEntity.class));
+        verify(projectUserBridgeRepo, times(1)).save(any(ProjectUserBridge.class));
     }
 
     @Test
@@ -135,12 +140,14 @@ class ProjectServiceTest {
         when(projectRepo.findByProjectName(anyString())).thenReturn(Optional.of(testProject));
         when(projectUserBridgeRepo.findByUserIdFKAndProjectIdFk(anyLong(), anyLong())).thenReturn(Optional.empty());
         when(projectUserBridgeRepo.save(any(ProjectUserBridge.class))).thenReturn(new ProjectUserBridge());
+        doNothing().when(emailService).sendProjectInvitation(anyString(), anyString(), anyString(), anyString());
 
         BaseResponse response = projectService.invite("john@test.com", "Test Project");
 
         assertEquals(HttpStatus.OK, response.getResponseCode());
         assertNotNull(response.getData());
         verify(projectUserBridgeRepo, times(1)).save(any(ProjectUserBridge.class));
+        verify(emailService, times(1)).sendProjectInvitation(anyString(), anyString(), anyString(), anyString());
     }
 
     @Test
@@ -243,6 +250,7 @@ class ProjectServiceTest {
     void getDeleteProjectServiceMethod_Success_NoTasks() {
         when(projectRepo.findByProjectName(anyString())).thenReturn(Optional.of(testProject));
         when(tasksRepo.findByProjectIdFk(anyLong())).thenReturn(Collections.emptyList());
+        when(projectUserBridgeRepo.findByProjectIdFk(anyLong())).thenReturn(Collections.emptyList());
         doNothing().when(projectRepo).delete(any(ProjectEntity.class));
 
         BaseResponse response = projectService.getDeleteProjectServiceMethod("Test Project");
@@ -259,12 +267,17 @@ class ProjectServiceTest {
         List<TaskUserBridge> taskBridges = Arrays.asList(
             TaskUserBridge.builder().taskIdFk(1L).userIdFK(1L).build()
         );
+        List<ProjectUserBridge> projectBridges = Arrays.asList(
+            ProjectUserBridge.builder().projectIdFk(1L).userIdFK(1L).build()
+        );
 
         when(projectRepo.findByProjectName(anyString())).thenReturn(Optional.of(testProject));
         when(tasksRepo.findByProjectIdFk(anyLong())).thenReturn(tasks);
         when(taskUserBridgeRepo.findByTaskIdFkIn(any())).thenReturn(taskBridges);
+        when(projectUserBridgeRepo.findByProjectIdFk(anyLong())).thenReturn(projectBridges);
         doNothing().when(taskUserBridgeRepo).deleteAll(any());
         doNothing().when(tasksRepo).deleteAll(any());
+        doNothing().when(projectUserBridgeRepo).deleteAll(any());
         doNothing().when(projectRepo).delete(any(ProjectEntity.class));
 
         BaseResponse response = projectService.getDeleteProjectServiceMethod("Test Project");
@@ -272,6 +285,7 @@ class ProjectServiceTest {
         assertEquals(HttpStatus.OK, response.getResponseCode());
         verify(taskUserBridgeRepo, times(1)).deleteAll(any());
         verify(tasksRepo, times(1)).deleteAll(any());
+        verify(projectUserBridgeRepo, times(1)).deleteAll(any());
     }
 
     @Test
@@ -319,5 +333,52 @@ class ProjectServiceTest {
         BaseResponse response = projectService.getProject("Unknown");
 
         assertEquals(HttpStatus.NOT_FOUND, response.getResponseCode());
+    }
+
+    // ==================== UPDATE MEMBER ROLE TESTS ====================
+
+    @Test
+    @DisplayName("Should update member role successfully")
+    void updateMemberRole_Success() {
+        ProjectUserBridge bridge = ProjectUserBridge.builder()
+                .userIdFK(1L)
+                .projectIdFk(1L)
+                .projectRole("MEMBER")
+                .build();
+
+        when(userRepo.findByEmail(anyString())).thenReturn(Optional.of(testUser));
+        when(projectRepo.findByProjectName(anyString())).thenReturn(Optional.of(testProject));
+        when(projectUserBridgeRepo.findByUserIdFKAndProjectIdFk(anyLong(), anyLong())).thenReturn(Optional.of(bridge));
+        when(projectUserBridgeRepo.save(any(ProjectUserBridge.class))).thenReturn(bridge);
+
+        BaseResponse response = projectService.updateMemberRole("john@test.com", "Test Project", "ADMIN");
+
+        assertEquals(HttpStatus.OK, response.getResponseCode());
+        verify(projectUserBridgeRepo, times(1)).save(any(ProjectUserBridge.class));
+    }
+
+    // ==================== GET PROJECT MEMBERS TESTS ====================
+
+    @Test
+    @DisplayName("Should get project members successfully")
+    void getProjectMembers_Success() {
+        List<ProjectUserBridge> members = Arrays.asList(
+            ProjectUserBridge.builder()
+                .userIdFK(1L)
+                .projectIdFk(1L)
+                .projectRole("ADMIN")
+                .acceptance('a')
+                .build()
+        );
+        List<UserEntity> users = Arrays.asList(testUser);
+
+        when(projectRepo.findByProjectName(anyString())).thenReturn(Optional.of(testProject));
+        when(projectUserBridgeRepo.findByProjectIdFk(anyLong())).thenReturn(members);
+        when(userRepo.findByUserIdIn(any())).thenReturn(users);
+
+        BaseResponse response = projectService.getProjectMembers("Test Project");
+
+        assertEquals(HttpStatus.OK, response.getResponseCode());
+        assertNotNull(response.getData());
     }
 }
