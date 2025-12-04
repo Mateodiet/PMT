@@ -71,7 +71,28 @@ public class ProjectController {
         return new ResponseEntity<>(response, response.getResponseCode());
     }
     
-    // get project by name
-    // get all projects
-    // get all project created by person
+
+    @GetMapping("/inviteWithRole/{email}/{projectName}/{role}")
+    public ResponseEntity<BaseResponse> inviteWithRole(
+            @PathVariable String email, 
+            @PathVariable String projectName,
+            @PathVariable String role){
+        BaseResponse response = projectService.inviteWithRole(email, projectName, role, null);
+        return ResponseEntity.status(response.getResponseCode()).body(response);
+    }
+
+    @PutMapping("/updateMemberRole/{email}/{projectName}/{role}")
+    public ResponseEntity<BaseResponse> updateMemberRole(
+            @PathVariable String email, 
+            @PathVariable String projectName,
+            @PathVariable String role){
+        BaseResponse response = projectService.updateMemberRole(email, projectName, role);
+        return ResponseEntity.status(response.getResponseCode()).body(response);
+    }
+
+    @GetMapping("/getProjectMembers/{projectName}")
+    public ResponseEntity<BaseResponse> getProjectMembers(@PathVariable String projectName){
+        BaseResponse response = projectService.getProjectMembers(projectName);
+        return ResponseEntity.status(response.getResponseCode()).body(response);
+    }
 }

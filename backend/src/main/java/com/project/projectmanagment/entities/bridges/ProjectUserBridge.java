@@ -2,7 +2,6 @@ package com.project.projectmanagment.entities.bridges;
 
 import java.sql.Date;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -22,16 +21,20 @@ import lombok.NoArgsConstructor;
 @Table(name = "project_user_bridge_tl")
 public class ProjectUserBridge {
     @Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	private Long projUserId;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long projUserId;
 
     private Long userIdFK;
     private Long projectIdFk;
-    private char acceptance='p'; // a=accepeted. p=pending
+    private String projectRole; // ADMIN, MEMBER, OBSERVER
+    private char acceptance = 'p'; // a=accepted, p=pending
     private Date assignmentDate;
 
     @PrePersist
     public void prePersist() {
         this.assignmentDate = new Date(System.currentTimeMillis());
+        if (this.projectRole == null) {
+            this.projectRole = "MEMBER";
+        }
     }
 }

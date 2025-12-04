@@ -1,6 +1,5 @@
 package com.project.projectmanagment.entities.task;
 
-
 import java.sql.Date;
 
 import jakarta.persistence.Column;
@@ -15,7 +14,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -24,19 +22,25 @@ import lombok.NoArgsConstructor;
 @Table(name = "project_task_tl")
 public class ProjectTask {
     @Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	private Long taskId;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long taskId;
 
     @Column(unique = true)
     private String taskName;
     private String taskDescription;
     private String taskStatus;
+    private String priority; // LOW, MEDIUM, HIGH, CRITICAL
+    private Date taskDueDate; // Date d'échéance
     private Date taskCreatedAt;
+    private Date taskCompletedAt; // Date de fin (quand status = DONE)
     private Long projectIdFk;
-    private Long taskCreatedBy;// FK refrence to user table
+    private Long taskCreatedBy; // FK reference to user table
 
     @PrePersist
     public void prePersist() {
         this.taskCreatedAt = new Date(System.currentTimeMillis());
+        if (this.priority == null) {
+            this.priority = "MEDIUM";
+        }
     }
 }

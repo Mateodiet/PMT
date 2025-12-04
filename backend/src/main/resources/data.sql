@@ -1,99 +1,103 @@
 -- ============================================
--- PMT - Project Management Tool
--- Données de test
+-- PMT - Données de test
 -- ============================================
 
 -- ============================================
--- UTILISATEURS DE TEST
+-- Utilisateurs
 -- ============================================
-INSERT INTO user_tl (user_id, name, email, password, role, contact_number, created_at, is_active) VALUES
-(1, 'Alice Martin', 'alice@codesolutions.com', 'password123', 'ADMIN', '0601020304', '2024-01-15', TRUE),
-(2, 'Bob Dupont', 'bob@codesolutions.com', 'password123', 'USER', '0605060708', '2024-01-16', TRUE),
-(3, 'Claire Bernard', 'claire@codesolutions.com', 'password123', 'USER', '0609101112', '2024-01-17', TRUE),
-(4, 'David Leroy', 'david@codesolutions.com', 'password123', 'USER', '0613141516', '2024-02-01', TRUE),
-(5, 'Emma Petit', 'emma@codesolutions.com', 'password123', 'USER', '0617181920', '2024-02-10', FALSE);
-
--- ============================================
--- PROJETS DE TEST
--- ============================================
-INSERT INTO project_tl (project_id, project_name, project_description, project_created_date, project_status_updated_date, project_status, task_created_by) VALUES
-(1, 'PMT-Backend', 'Développement du backend Spring Boot pour l''application PMT', '2024-01-20', '2024-03-01', 'IN_PROGRESS', 1),
-(2, 'PMT-Frontend', 'Développement du frontend Angular pour l''application PMT', '2024-01-22', '2024-02-15', 'IN_PROGRESS', 1),
-(3, 'PMT-DevOps', 'Mise en place de la CI/CD et de l''infrastructure Docker', '2024-02-01', NULL, 'TODO', 2),
-(4, 'Site Vitrine', 'Création du site vitrine de Code Solutions', '2024-03-01', '2024-03-10', 'DONE', 3);
+INSERT INTO user_tl (user_id, name, email, password, role, contact_number, is_active) VALUES
+(1, 'Alice Martin', 'alice.martin@pmt.com', '$2a$10$xJwL5K8z5Z5Z5Z5Z5Z5Z5O', 'ADMIN', '0601020304', true),
+(2, 'Bob Dupont', 'bob.dupont@pmt.com', '$2a$10$xJwL5K8z5Z5Z5Z5Z5Z5Z5O', 'USER', '0605060708', true),
+(3, 'Claire Bernard', 'claire.bernard@pmt.com', '$2a$10$xJwL5K8z5Z5Z5Z5Z5Z5Z5O', 'USER', '0609101112', true),
+(4, 'David Leroy', 'david.leroy@pmt.com', '$2a$10$xJwL5K8z5Z5Z5Z5Z5Z5Z5O', 'USER', '0613141516', true),
+(5, 'Emma Petit', 'emma.petit@pmt.com', '$2a$10$xJwL5K8z5Z5Z5Z5Z5Z5Z5O', 'USER', '0617181920', true);
 
 -- ============================================
--- TÂCHES DE TEST
+-- Projets
 -- ============================================
-INSERT INTO project_task_tl (task_id, task_name, task_description, task_status, task_created_at, project_id_fk, task_created_by) VALUES
--- Tâches pour PMT-Backend
-(1, 'Créer les entités JPA', 'Définir les entités User, Project, Task avec leurs annotations JPA', 'DONE', '2024-01-21', 1, 1),
-(2, 'Implémenter les repositories', 'Créer les interfaces Repository pour chaque entité', 'DONE', '2024-01-22', 1, 1),
-(3, 'Développer les services', 'Implémenter la logique métier dans les classes Service', 'IN_PROGRESS', '2024-01-25', 1, 2),
-(4, 'Créer les contrôleurs REST', 'Exposer les endpoints API REST', 'IN_PROGRESS', '2024-01-28', 1, 2),
-(5, 'Écrire les tests unitaires', 'Atteindre 60% de couverture de code', 'TODO', '2024-02-01', 1, 1),
-
--- Tâches pour PMT-Frontend
-(6, 'Créer les composants Angular', 'Développer les composants principaux de l''interface', 'DONE', '2024-01-23', 2, 1),
-(7, 'Implémenter les services HTTP', 'Créer les services pour communiquer avec le backend', 'DONE', '2024-01-26', 2, 3),
-(8, 'Développer le tableau de bord', 'Interface de visualisation des tâches par statut', 'IN_PROGRESS', '2024-02-01', 2, 3),
-(9, 'Ajouter les tests Jasmine', 'Écrire les tests unitaires frontend', 'TODO', '2024-02-05', 2, 1),
-
--- Tâches pour PMT-DevOps
-(10, 'Créer les Dockerfiles', 'Dockerfile pour le backend et le frontend', 'TODO', '2024-02-02', 3, 2),
-(11, 'Configurer GitHub Actions', 'Pipeline CI/CD pour build, test et deploy', 'TODO', '2024-02-03', 3, 2),
-(12, 'Push sur Docker Hub', 'Automatiser le push des images Docker', 'TODO', '2024-02-04', 3, 2),
-
--- Tâches pour Site Vitrine
-(13, 'Design des maquettes', 'Créer les maquettes Figma du site', 'DONE', '2024-03-02', 4, 3),
-(14, 'Intégration HTML/CSS', 'Développer les pages statiques', 'DONE', '2024-03-05', 4, 4),
-(15, 'Mise en production', 'Déployer le site sur le serveur de production', 'DONE', '2024-03-08', 4, 3);
+INSERT INTO project_tl (project_id, project_name, project_description, project_status, task_created_by) VALUES
+(1, 'PMT-Backend', 'Développement de l''API REST Spring Boot', 'ACTIVE', 1),
+(2, 'PMT-Frontend', 'Développement de l''interface Angular', 'ACTIVE', 1),
+(3, 'PMT-DevOps', 'Infrastructure et déploiement CI/CD', 'ACTIVE', 2),
+(4, 'PMT-Documentation', 'Rédaction de la documentation technique', 'COMPLETED', 3);
 
 -- ============================================
--- ASSOCIATIONS PROJET-UTILISATEUR (membres des projets)
+-- Tâches (avec priority et dueDate)
 -- ============================================
-INSERT INTO project_user_bridge_tl (proj_user_id, user_id_fk, project_id_fk, acceptance, assignment_date) VALUES
--- PMT-Backend : Alice (admin), Bob (membre), Claire (observateur)
-(1, 1, 1, 'a', '2024-01-20'),
-(2, 2, 1, 'a', '2024-01-21'),
-(3, 3, 1, 'a', '2024-01-22'),
+INSERT INTO project_task_tl (task_id, task_name, task_description, task_status, priority, task_due_date, project_id_fk, task_created_by) VALUES
+-- Projet Backend
+(1, 'API-Authentication', 'Implémenter JWT authentication', 'DONE', 'HIGH', '2025-01-15', 1, 1),
+(2, 'API-Users-CRUD', 'Endpoints CRUD pour les utilisateurs', 'DONE', 'HIGH', '2025-01-20', 1, 1),
+(3, 'API-Projects-CRUD', 'Endpoints CRUD pour les projets', 'DONE', 'HIGH', '2025-01-25', 1, 1),
+(4, 'API-Tasks-CRUD', 'Endpoints CRUD pour les tâches', 'IN_PROGRESS', 'HIGH', '2025-02-01', 1, 2),
+(5, 'API-Email-Service', 'Service d''envoi de notifications email', 'TODO', 'MEDIUM', '2025-02-10', 1, 1),
+(6, 'API-Task-History', 'Historique des modifications de tâches', 'IN_PROGRESS', 'MEDIUM', '2025-02-15', 1, 2),
 
--- PMT-Frontend : Alice (admin), Claire (membre), David (invité en attente)
-(4, 1, 2, 'a', '2024-01-22'),
-(5, 3, 2, 'a', '2024-01-23'),
-(6, 4, 2, 'p', '2024-02-01'),
+-- Projet Frontend
+(7, 'UI-Login-Page', 'Page de connexion et inscription', 'DONE', 'HIGH', '2025-01-18', 2, 3),
+(8, 'UI-Dashboard', 'Tableau de bord principal', 'DONE', 'HIGH', '2025-01-28', 2, 3),
+(9, 'UI-Project-List', 'Liste et gestion des projets', 'IN_PROGRESS', 'MEDIUM', '2025-02-05', 2, 4),
+(10, 'UI-Task-Board', 'Kanban board pour les tâches', 'TODO', 'HIGH', '2025-02-20', 2, 3),
+(11, 'UI-Notifications', 'Système de notifications', 'TODO', 'LOW', '2025-03-01', 2, 4),
 
--- PMT-DevOps : Bob (admin), David (membre)
-(7, 2, 3, 'a', '2024-02-01'),
-(8, 4, 3, 'a', '2024-02-02'),
-
--- Site Vitrine : Claire (admin), David (membre)
-(9, 3, 4, 'a', '2024-03-01'),
-(10, 4, 4, 'a', '2024-03-02');
+-- Projet DevOps
+(12, 'Docker-Backend', 'Dockerfile pour le backend', 'DONE', 'CRITICAL', '2025-01-10', 3, 2),
+(13, 'Docker-Frontend', 'Dockerfile pour le frontend', 'DONE', 'CRITICAL', '2025-01-12', 3, 2),
+(14, 'CI-Pipeline', 'Pipeline GitHub Actions', 'DONE', 'CRITICAL', '2025-01-20', 3, 2),
+(15, 'CD-DockerHub', 'Push automatique sur Docker Hub', 'DONE', 'HIGH', '2025-01-25', 3, 2);
 
 -- ============================================
--- ASSOCIATIONS TÂCHE-UTILISATEUR (assignations)
+-- Membres des projets (avec rôles)
 -- ============================================
-INSERT INTO task_user_bridge_tl (task_user_id, user_id_fk, task_id_fk, assignment_date) VALUES
--- Assignations PMT-Backend
-(1, 1, 1, '2024-01-21'),
-(2, 1, 2, '2024-01-22'),
-(3, 2, 3, '2024-01-25'),
-(4, 2, 4, '2024-01-28'),
-(5, 1, 5, '2024-02-01'),
+INSERT INTO project_user_bridge_tl (proj_user_id, user_id_fk, project_id_fk, project_role, acceptance) VALUES
+-- Projet Backend
+(1, 1, 1, 'ADMIN', 'a'),
+(2, 2, 1, 'MEMBER', 'a'),
+(3, 5, 1, 'OBSERVER', 'a'),
 
--- Assignations PMT-Frontend
-(6, 1, 6, '2024-01-23'),
-(7, 3, 7, '2024-01-26'),
-(8, 3, 8, '2024-02-01'),
-(9, 1, 9, '2024-02-05'),
+-- Projet Frontend
+(4, 1, 2, 'ADMIN', 'a'),
+(5, 3, 2, 'MEMBER', 'a'),
+(6, 4, 2, 'MEMBER', 'a'),
 
--- Assignations PMT-DevOps
-(10, 2, 10, '2024-02-02'),
-(11, 2, 11, '2024-02-03'),
-(12, 4, 12, '2024-02-04'),
+-- Projet DevOps
+(7, 2, 3, 'ADMIN', 'a'),
+(8, 1, 3, 'MEMBER', 'a'),
+(9, 5, 3, 'OBSERVER', 'p'),
 
--- Assignations Site Vitrine
-(13, 3, 13, '2024-03-02'),
-(14, 4, 14, '2024-03-05'),
-(15, 3, 15, '2024-03-08');
+-- Projet Documentation
+(10, 3, 4, 'ADMIN', 'a'),
+(11, 4, 4, 'MEMBER', 'a');
+
+-- ============================================
+-- Assignation des tâches aux utilisateurs
+-- ============================================
+INSERT INTO task_user_bridge_tl (task_user_id, user_id_fk, task_id_fk) VALUES
+(1, 1, 1),
+(2, 2, 2),
+(3, 2, 3),
+(4, 2, 4),
+(5, 1, 5),
+(6, 2, 6),
+(7, 3, 7),
+(8, 3, 8),
+(9, 4, 9),
+(10, 3, 10),
+(11, 4, 11),
+(12, 2, 12),
+(13, 2, 13),
+(14, 2, 14),
+(15, 2, 15);
+
+-- ============================================
+-- Historique des modifications (exemples)
+-- ============================================
+INSERT INTO task_history_tl (history_id, task_id_fk, modified_by_user_id, modified_by_email, field_name, old_value, new_value, change_description) VALUES
+(1, 1, 1, 'alice.martin@pmt.com', 'creation', NULL, 'API-Authentication', 'Tâche créée'),
+(2, 1, 1, 'alice.martin@pmt.com', 'taskStatus', 'TODO', 'IN_PROGRESS', 'Statut modifié de TODO à IN_PROGRESS'),
+(3, 1, 2, 'bob.dupont@pmt.com', 'taskStatus', 'IN_PROGRESS', 'DONE', 'Statut modifié de IN_PROGRESS à DONE'),
+(4, 4, 1, 'alice.martin@pmt.com', 'creation', NULL, 'API-Tasks-CRUD', 'Tâche créée'),
+(5, 4, 2, 'bob.dupont@pmt.com', 'taskStatus', 'TODO', 'IN_PROGRESS', 'Statut modifié de TODO à IN_PROGRESS'),
+(6, 4, 2, 'bob.dupont@pmt.com', 'priority', 'MEDIUM', 'HIGH', 'Priorité modifiée de MEDIUM à HIGH'),
+(7, 6, 1, 'alice.martin@pmt.com', 'creation', NULL, 'API-Task-History', 'Tâche créée'),
+(8, 6, 2, 'bob.dupont@pmt.com', 'assignment', NULL, 'bob.dupont@pmt.com', 'Tâche assignée à Bob Dupont');

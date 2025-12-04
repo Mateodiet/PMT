@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import com.project.projectmanagment.entities.bridges.TaskUserBridge;
 import com.project.projectmanagment.entities.project.ProjectEntity;
 import com.project.projectmanagment.entities.task.ProjectTask;
+import com.project.projectmanagment.entities.task.TaskHistory;
 import com.project.projectmanagment.entities.user.UserEntity;
 import com.project.projectmanagment.models.response.BaseResponse;
 import com.project.projectmanagment.models.task.TaskAssignedToUserResponseModel;
@@ -21,6 +22,7 @@ import com.project.projectmanagment.models.task.TaskUserAssignModel;
 import com.project.projectmanagment.models.task.TasksModel;
 import com.project.projectmanagment.repositories.project.ProjectRepo;
 import com.project.projectmanagment.repositories.project.ProjectUserBridgeRepo;
+import com.project.projectmanagment.repositories.task.TaskHistoryRepo;
 import com.project.projectmanagment.repositories.task.TaskUserBridgeRepo;
 import com.project.projectmanagment.repositories.task.TasksRepo;
 import com.project.projectmanagment.repositories.user.UserRepo;
@@ -36,6 +38,8 @@ public class TaskService {
     private final ProjectUserBridgeRepo projectUserBridgeRepo;
     private final TaskUserBridgeRepo taskUserBridgeRepo;
     private final TasksRepo tasksRepo;
+    private final TaskHistoryRepo taskHistoryRepo;
+    private final EmailService emailService;
 
     public BaseResponse createTask(TasksModel taskRequest){
         Optional<ProjectTask> getTaskDataDb = tasksRepo.findByTaskName(taskRequest.getTaskName());
@@ -66,11 +70,17 @@ public class TaskService {
             .taskName(taskRequest.getTaskName())
             .taskDescription(taskRequest.getTaskDescription())
             .taskStatus(taskRequest.getTaskStatus())
+            .priority(taskRequest.getPriority() != null ? taskRequest.getPriority() : "MEDIUM")
+            .taskDueDate(taskRequest.getTaskDueDate())
             .taskCreatedAt(new Date(System.currentTimeMillis()))
             .projectIdFk(projectData.get().getProjectId())
             .taskCreatedBy(userDbData.get().getUserId())
             .build()
         );
+
+        // Enregistrer dans l'historique - Création
+        saveTaskHistory(task.getTaskId(), userDbData.get().getUserId(), userDbData.get().getEmail(),
+                "creation", null, task.getTaskName(), "Tâche créée");
 
         return BaseResponse.builder()
         .responseCode(HttpStatus.OK)
@@ -81,7 +91,7 @@ public class TaskService {
 
     public BaseResponse updateTask(String taskName, TasksModel taskRequest){
 
-        Optional<ProjectTask> getTaskDataDb = tasksRepo.findByTaskName(taskRequest.getTaskName());
+        Optional<ProjectTask> getTaskDataDb = tasksRepo.findByTaskName(taskName);
         if(!getTaskDataDb.isPresent()){
             return BaseResponse.builder()
                 .responseCode(HttpStatus.NOT_FOUND)
@@ -89,38 +99,77 @@ public class TaskService {
         }
 
         ProjectTask task = getTaskDataDb.get();
+        
+        // Récupérer l'utilisateur qui fait la modification
+        Long modifiedByUserId = null;
+        String modifiedByEmail = "system";
+        if(taskRequest.getCreatorEmail() != null && !taskRequest.getCreatorEmail().isEmpty()){
+            Optional<UserEntity> userDbData = userRepo.findByEmail(taskRequest.getCreatorEmail());
+            if(userDbData.isPresent()){
+                modifiedByUserId = userDbData.get().getUserId();
+                modifiedByEmail = userDbData.get().getEmail();
+            }
+        }
 
-        if(taskRequest.getProjectName()!=null || !taskRequest.getProjectName().isEmpty()){
+        // Vérifier et enregistrer chaque modification
+        if(taskRequest.getProjectName() != null && !taskRequest.getProjectName().isEmpty()){
             Optional<ProjectEntity> projectData = projectRepo.findByProjectName(taskRequest.getProjectName());
             if(projectData.isPresent()){
                 task.setProjectIdFk(projectData.get().getProjectId());
             }
         }
 
-        if(taskRequest.getCreatorEmail()!=null || !taskRequest.getCreatorEmail().isEmpty()){
-            Optional<UserEntity> userDbData = userRepo.findByEmail(taskRequest.getCreatorEmail());
+        // Mise à jour du nom
+        if(taskRequest.getTaskName() != null && !taskRequest.getTaskName().isEmpty() 
+                && !taskRequest.getTaskName().equals(task.getTaskName())){
+            saveTaskHistory(task.getTaskId(), modifiedByUserId, modifiedByEmail,
+                    "taskName", task.getTaskName(), taskRequest.getTaskName(), "Nom de la tâche modifié");
+            task.setTaskName(taskRequest.getTaskName());
+        }
 
-            if(userDbData.isPresent()){
-                task.setTaskCreatedBy(userDbData.get().getUserId());
+        // Mise à jour de la description
+        if(taskRequest.getTaskDescription() != null && !taskRequest.getTaskDescription().isEmpty()
+                && !taskRequest.getTaskDescription().equals(task.getTaskDescription())){
+            saveTaskHistory(task.getTaskId(), modifiedByUserId, modifiedByEmail,
+                    "taskDescription", task.getTaskDescription(), taskRequest.getTaskDescription(), "Description modifiée");
+            task.setTaskDescription(taskRequest.getTaskDescription());
+        }
+
+        // Mise à jour du statut
+        if(taskRequest.getTaskStatus() != null && !taskRequest.getTaskStatus().isEmpty()
+                && !taskRequest.getTaskStatus().equals(task.getTaskStatus())){
+            saveTaskHistory(task.getTaskId(), modifiedByUserId, modifiedByEmail,
+                    "taskStatus", task.getTaskStatus(), taskRequest.getTaskStatus(), 
+                    "Statut modifié de " + task.getTaskStatus() + " à " + taskRequest.getTaskStatus());
+            task.setTaskStatus(taskRequest.getTaskStatus());
+            
+            // Si le statut passe à DONE, enregistrer la date de complétion
+            if("DONE".equalsIgnoreCase(taskRequest.getTaskStatus())){
+                task.setTaskCompletedAt(new Date(System.currentTimeMillis()));
             }
         }
 
-        task.setTaskName(
-            taskRequest.getTaskName()==null || taskRequest.getProjectName().isEmpty()?
-            task.getTaskName():taskRequest.getTaskName()
-        );
+        // Mise à jour de la priorité
+        if(taskRequest.getPriority() != null && !taskRequest.getPriority().isEmpty()
+                && !taskRequest.getPriority().equals(task.getPriority())){
+            saveTaskHistory(task.getTaskId(), modifiedByUserId, modifiedByEmail,
+                    "priority", task.getPriority(), taskRequest.getPriority(), 
+                    "Priorité modifiée de " + task.getPriority() + " à " + taskRequest.getPriority());
+            task.setPriority(taskRequest.getPriority());
+        }
 
-        task.setTaskDescription(
-            taskRequest.getTaskDescription()==null || taskRequest.getTaskDescription().isEmpty()?
-            task.getTaskDescription():taskRequest.getTaskDescription()
-        );
-
-        task.setTaskStatus(
-            taskRequest.getTaskStatus()==null || taskRequest.getTaskStatus().isEmpty()?
-            task.getTaskStatus():taskRequest.getTaskStatus()
-        );
+        // Mise à jour de la date d'échéance
+        if(taskRequest.getTaskDueDate() != null && !taskRequest.getTaskDueDate().equals(task.getTaskDueDate())){
+            String oldDate = task.getTaskDueDate() != null ? task.getTaskDueDate().toString() : "non définie";
+            saveTaskHistory(task.getTaskId(), modifiedByUserId, modifiedByEmail,
+                    "taskDueDate", oldDate, taskRequest.getTaskDueDate().toString(), "Date d'échéance modifiée");
+            task.setTaskDueDate(taskRequest.getTaskDueDate());
+        }
 
         tasksRepo.save(task);
+
+        // Notifier les utilisateurs assignés de la mise à jour
+        notifyAssignedUsers(task.getTaskId(), task.getTaskName(), "La tâche a été mise à jour");
 
         return BaseResponse.builder()
         .responseCode(HttpStatus.OK)
@@ -142,6 +191,12 @@ public class TaskService {
             Optional<TaskUserBridge> taskBridge = taskUserBridgeRepo.findByTaskIdFk(getTaskDataDb.get().getTaskId());
             if(taskBridge.isPresent()){
                 taskUserBridgeRepo.deleteByTaskIdFk(getTaskDataDb.get().getTaskId());
+            }
+    
+            // Supprimer l'historique de la tâche
+            List<TaskHistory> historyList = taskHistoryRepo.findByTaskIdFkOrderByModifiedAtDesc(getTaskDataDb.get().getTaskId());
+            if(!historyList.isEmpty()){
+                taskHistoryRepo.deleteAll(historyList);
             }
     
             tasksRepo.deleteById(getTaskDataDb.get().getTaskId());
@@ -239,6 +294,26 @@ public class TaskService {
             .build()
         );
 
+        // Enregistrer dans l'historique
+        saveTaskHistory(getTaskDataDb.get().getTaskId(), null, "system",
+                "assignment", null, userDbData.get().getEmail(), 
+                "Tâche assignée à " + userDbData.get().getName());
+
+        // Récupérer le nom du projet pour l'email
+        String projectName = "Projet";
+        Optional<ProjectEntity> project = projectRepo.findById(getTaskDataDb.get().getProjectIdFk());
+        if(project.isPresent()){
+            projectName = project.get().getProjectName();
+        }
+
+        // Envoyer notification par email
+        emailService.sendTaskAssignmentNotification(
+            userDbData.get().getEmail(),
+            getTaskDataDb.get().getTaskName(),
+            projectName,
+            assignUserTask.getAssignedByEmail() != null ? assignUserTask.getAssignedByEmail() : "Un administrateur"
+        );
+
         return BaseResponse.builder()
         .responseCode(HttpStatus.OK)
         .responseDesc("success")
@@ -268,7 +343,7 @@ public class TaskService {
         // assigned list
         List<ProjectTask> assigedTasksDetailList = tasksRepo.findByTaskIdIn(
             assignedTaskList.stream()
-                .map(TaskUserBridge::getTaskIdFk)  // Extract taskIdFk from each TaskUserBridge
+                .map(TaskUserBridge::getTaskIdFk)
                 .collect(Collectors.toList())
         );
 
@@ -281,7 +356,7 @@ public class TaskService {
         // Assigned to users
         List<UserEntity> tasksAssigedToUsers = userRepo.findByUserIdIn(
             assignedTaskList.stream()
-                .map(TaskUserBridge::getUserIdFK)  // Extract taskIdFk from each TaskUserBridge
+                .map(TaskUserBridge::getUserIdFK)
                 .collect(Collectors.toList())
         );
 
@@ -289,12 +364,12 @@ public class TaskService {
 
         for(TaskUserBridge usertask : assignedTaskList){
             Optional<UserEntity> userEntity = tasksAssigedToUsers.stream()
-            .filter(user -> user.getUserId().equals(usertask.getUserIdFK())) // Filter by userId
+            .filter(user -> user.getUserId().equals(usertask.getUserIdFK()))
             .findFirst();
 
             Optional<ProjectTask> projectTask = assigedTasksDetailList.stream()
-                .filter(task -> task.getTaskId().equals(usertask.getTaskIdFk())) // Filter by taskId
-                .findFirst(); // Get the first match
+                .filter(task -> task.getTaskId().equals(usertask.getTaskIdFk()))
+                .findFirst();
 
             if(projectTask.isPresent() && userEntity.isPresent()){
                 TaskAssignedToUserResponseModel tmpObj = new TaskAssignedToUserResponseModel();
@@ -333,7 +408,7 @@ public class TaskService {
 
         List<ProjectTask> assignedtaskToUsers = tasksRepo.findByTaskIdIn(
             taskUserData.stream()
-            .map(TaskUserBridge::getTaskIdFk)  // Extract taskIdFk from each TaskUserBridge
+            .map(TaskUserBridge::getTaskIdFk)
             .collect(Collectors.toList())
         );
 
@@ -354,5 +429,67 @@ public class TaskService {
         .data(assigednTasks)
         .build();
     }
-    
+
+    // ============================================
+    // HISTORIQUE DES TÂCHES
+    // ============================================
+
+    /**
+     * Récupère l'historique des modifications d'une tâche
+     */
+    public BaseResponse getTaskHistory(String taskName){
+        Optional<ProjectTask> taskData = tasksRepo.findByTaskName(taskName);
+        if(!taskData.isPresent()){
+            return BaseResponse.builder()
+                .responseCode(HttpStatus.NOT_FOUND)
+                .responseDesc("Task Does not Exists").build();
+        }
+
+        List<TaskHistory> history = taskHistoryRepo.findByTaskIdFkOrderByModifiedAtDesc(taskData.get().getTaskId());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("taskName", taskName);
+        response.put("taskId", taskData.get().getTaskId());
+        response.put("history", history);
+
+        return BaseResponse.builder()
+        .responseCode(HttpStatus.OK)
+        .responseDesc("success")
+        .data(response)
+        .build();
+    }
+
+    /**
+     * Enregistre une modification dans l'historique
+     */
+    private void saveTaskHistory(Long taskId, Long userId, String email, 
+            String fieldName, String oldValue, String newValue, String description){
+        TaskHistory history = TaskHistory.builder()
+            .taskIdFk(taskId)
+            .modifiedByUserId(userId)
+            .modifiedByEmail(email)
+            .fieldName(fieldName)
+            .oldValue(oldValue)
+            .newValue(newValue)
+            .changeDescription(description)
+            .build();
+        taskHistoryRepo.save(history);
+    }
+
+    /**
+     * Notifie tous les utilisateurs assignés à une tâche
+     */
+    private void notifyAssignedUsers(Long taskId, String taskName, String updateDescription){
+        List<TaskUserBridge> assignments = taskUserBridgeRepo.findByTaskIdFkIn(List.of(taskId));
+        if(!assignments.isEmpty()){
+            List<Long> userIds = assignments.stream()
+                .map(TaskUserBridge::getUserIdFK)
+                .collect(Collectors.toList());
+            List<UserEntity> users = userRepo.findByUserIdIn(userIds);
+            
+            for(UserEntity user : users){
+                emailService.sendTaskUpdateNotification(user.getEmail(), taskName, updateDescription);
+            }
+        }
+    }
 }

@@ -85,9 +85,11 @@ public class TasksController {
         return new ResponseEntity<>(response, response.getResponseCode());
     }
     
-    // get tasks by specific projects
-    // get task by project
-    // completed task
-    // assign task
+
+    @GetMapping("/getTaskHistory")
+    public ResponseEntity<BaseResponse> getTaskHistory(@RequestParam String taskName){
+        BaseResponse response = taskService.getTaskHistory(taskName);
+        return ResponseEntity.status(response.getResponseCode()).body(response);
+    }
     
 }

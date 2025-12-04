@@ -9,4 +9,5 @@ import lombok.Data;
 public class TaskUserAssignModel {
     private String taskName;
     private String userEmail;
+    private String assignedByEmail;
 }
