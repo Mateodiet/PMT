@@ -8,7 +8,6 @@ import { users } from '../shared/enum';
 })
 export class UserService {
 
-  // MODIFIÉ : URL locale au lieu de ngrok
   baseUrl : string = 'http://localhost:8081/api';
   
   constructor(private http : HttpClient) { }
