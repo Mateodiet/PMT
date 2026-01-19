@@ -22,7 +22,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "project_task_tl")
 public class ProjectTask {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long taskId;
 
     @Column(unique = true)

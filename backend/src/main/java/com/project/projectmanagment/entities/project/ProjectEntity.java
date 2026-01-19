@@ -25,8 +25,8 @@ import lombok.NoArgsConstructor;
 @Table(name = "project_tl")
 public class ProjectEntity {
     @Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	private Long projectId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long projectId;
 
     @Column(unique = true)
     private String projectName;

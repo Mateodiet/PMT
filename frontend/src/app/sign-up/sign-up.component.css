@@ -10,20 +10,33 @@
     text-align: left;
     text-underline-position: from-font;
     text-decoration-skip-ink: none;
-        
 }
 
+/* MODIFIÉ : Bouton avec couleur active */
 .button-login{
     width: 346px;
     height: 48px;
     padding: 12px 99px;
     gap: 10px;
     border-radius: 8px;
-    opacity: 0px;
-    background: #c2c0c0;
+    background: #6B46C1;  /* CHANGÉ : Violet au lieu de gris */
     border: none;
     color: white;
+    cursor: pointer;      /* AJOUTÉ */
+    transition: background 0.2s ease;  /* AJOUTÉ */
 }
+
+/* AJOUTÉ : État hover */
+.button-login:hover {
+    background: #553C9A;
+}
+
+/* AJOUTÉ : État désactivé */
+.button-login:disabled {
+    background: #c2c0c0;
+    cursor: not-allowed;
+}
+
 .google-login{
     width: 346px;
     height: 48px;
@@ -47,8 +60,6 @@
     text-underline-position: from-font;
     text-decoration-skip-ink: none;
     color: hsla(272, 65%, 30%, 1);
-
-        
 }
 
 .margin-left-40{
@@ -58,16 +69,14 @@
     margin-left: 450px;
     gap: 4px;
     opacity: 0px;
-    
 }
 
 .mainnnnn{
-font-size: 28px;
-font-weight: 600;
-line-height: 40px;
-letter-spacing: 0.001em;
-text-align: center;
-text-underline-position: from-font;
-text-decoration-skip-ink: none;
-
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 40px;
+    letter-spacing: 0.001em;
+    text-align: center;
+    text-underline-position: from-font;
+    text-decoration-skip-ink: none;
 }

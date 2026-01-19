@@ -6,12 +6,11 @@
 -- Utilisateurs
 -- ============================================
 INSERT INTO user_tl (user_id, name, email, password, role, contact_number, is_active) VALUES
-(1, 'Alice Martin', 'alice.martin@pmt.com', '$2a$10$xJwL5K8z5Z5Z5Z5Z5Z5Z5O', 'ADMIN', '0601020304', true),
-(2, 'Bob Dupont', 'bob.dupont@pmt.com', '$2a$10$xJwL5K8z5Z5Z5Z5Z5Z5Z5O', 'USER', '0605060708', true),
-(3, 'Claire Bernard', 'claire.bernard@pmt.com', '$2a$10$xJwL5K8z5Z5Z5Z5Z5Z5Z5O', 'USER', '0609101112', true),
-(4, 'David Leroy', 'david.leroy@pmt.com', '$2a$10$xJwL5K8z5Z5Z5Z5Z5Z5Z5O', 'USER', '0613141516', true),
-(5, 'Emma Petit', 'emma.petit@pmt.com', '$2a$10$xJwL5K8z5Z5Z5Z5Z5Z5Z5O', 'USER', '0617181920', true);
-
+(1, 'Alice Martin', 'alice.martin@pmt.com', 'password123', 'ADMIN', '0601020304', true),
+(2, 'Bob Dupont', 'bob.dupont@pmt.com', 'password123', 'USER', '0605060708', true),
+(3, 'Claire Bernard', 'claire.bernard@pmt.com', 'password123', 'USER', '0609101112', true),
+(4, 'David Leroy', 'david.leroy@pmt.com', 'password123', 'USER', '0613141516', true),
+(5, 'Emma Petit', 'emma.petit@pmt.com', 'password123', 'USER', '0617181920', true);
 -- ============================================
 -- Projets
 -- ============================================
@@ -101,3 +100,12 @@ INSERT INTO task_history_tl (history_id, task_id_fk, modified_by_user_id, modifi
 (6, 4, 2, 'bob.dupont@pmt.com', 'priority', 'MEDIUM', 'HIGH', 'Priorité modifiée de MEDIUM à HIGH'),
 (7, 6, 1, 'alice.martin@pmt.com', 'creation', NULL, 'API-Task-History', 'Tâche créée'),
 (8, 6, 2, 'bob.dupont@pmt.com', 'assignment', NULL, 'bob.dupont@pmt.com', 'Tâche assignée à Bob Dupont');
+
+
+
+ALTER TABLE user_tl AUTO_INCREMENT = 100;
+ALTER TABLE project_tl AUTO_INCREMENT = 100;
+ALTER TABLE project_task_tl AUTO_INCREMENT = 100;
+ALTER TABLE project_user_bridge_tl AUTO_INCREMENT = 100;
+ALTER TABLE task_user_bridge_tl AUTO_INCREMENT = 100;
+ALTER TABLE task_history_tl AUTO_INCREMENT = 100;

@@ -3,7 +3,7 @@
             <div class="main-section">
                 <div class="text-center">
                     <h2 class="mainnnnn">
-                        Get started - it's free. 
+                        Get started - it's free.
                     </h2>
                 </div>
                 <div class="row">
@@ -29,7 +29,7 @@
                                         <option [value]="'manager'">Manager</option>
                                         <option [value]="'developer'">Developer</option>
                                         <option [value]="'designer'">Designer</option>
-                                    </select>                            
+                                    </select>
                                 </div>
                                 <p>Enter contact number</p>
                                 <div class="mb-3">
@@ -38,8 +38,12 @@
                                 <div class="mb-4">
                                     <a class="forget mb-4" href="javascript:void(0)">By proceeding, you agree to the Terms of Service and Privacy Policy</a>
                                 </div>
-                                <button class="w-100 mb-4 text-center button-login"  (click)="signUpUser()">Sign Up</button>
-                                <p class="last-line mb-4"> Already have an account?<a href="javascript:void(0)" routerLink="../signup">Log in</a></p>
+                                <!-- MODIFIÉ : Ajout de [disabled] -->
+                                <button class="w-100 mb-4 text-center button-login" 
+                                        [disabled]="signupForm.invalid" 
+                                        (click)="signUpUser()">Sign Up</button>
+                                <!-- MODIFIÉ : signin au lieu de signup -->
+                                <p class="last-line mb-4"> Already have an account?<a href="javascript:void(0)" routerLink="../signin">Log in</a></p>
                             </div>
                         </form>
                     </div>

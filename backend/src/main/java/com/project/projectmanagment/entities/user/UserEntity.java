@@ -22,8 +22,8 @@ import lombok.NoArgsConstructor;
 @Table(name = "user_tl")
 public class UserEntity {
     @Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	private Long userId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)  // CHANGÉ : AUTO → IDENTITY
+    private Long userId;
     private String name;
     @Column(unique = true)
     private String email;

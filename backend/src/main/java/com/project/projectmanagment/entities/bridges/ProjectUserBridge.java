@@ -21,7 +21,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "project_user_bridge_tl")
 public class ProjectUserBridge {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long projUserId;
 
     private Long userIdFK;

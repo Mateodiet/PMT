@@ -22,7 +22,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "task_history_tl")
 public class TaskHistory {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long historyId;
 
     private Long taskIdFk; // FK reference to task

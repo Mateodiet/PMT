@@ -22,8 +22,8 @@ import lombok.NoArgsConstructor;
 @Table(name = "task_user_bridge_tl")
 public class TaskUserBridge {
     @Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	private Long taskUserId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long taskUserId;
 
     private Long userIdFK;
     private Long taskIdFk;
