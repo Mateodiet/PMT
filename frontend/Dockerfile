@@ -6,6 +6,9 @@
 # Stage 1: Build
 FROM node:20-alpine AS builder
 
+# Install Angular CLI globally
+RUN npm install -g @angular/cli
+
 WORKDIR /app
 
 # Copy package files first for better layer caching
@@ -18,7 +21,7 @@ RUN npm ci --legacy-peer-deps
 COPY . .
 
 # Build for production
-RUN npm run build -- --configuration=production
+RUN ng build --configuration=production
 
 # Stage 2: Runtime with Nginx
 FROM nginx:1.25-alpine
@@ -30,7 +33,6 @@ RUN rm -rf /usr/share/nginx/html/*
 COPY nginx.conf /etc/nginx/nginx.conf
 
 # Copy built Angular app from builder stage
-# Angular 17+ outputs to dist/<project-name>/browser
 COPY --from=builder /app/dist/pmt/browser /usr/share/nginx/html
 
 # Add non-root user for security
