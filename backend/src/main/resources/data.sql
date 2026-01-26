@@ -88,18 +88,6 @@ INSERT INTO task_user_bridge_tl (task_user_id, user_id_fk, task_id_fk) VALUES
 (14, 2, 14),
 (15, 2, 15);
 
--- ============================================
--- Historique des modifications (exemples)
--- ============================================
-INSERT INTO user_tl (user_id, name, email, password, role, contact_number, is_active) VALUES
-(1, 'Alice Martin', 'alice.martin@pmt.com', 'password123', 'ADMIN', '0601020304', true),
-(2, 'Bob Dupont', 'bob.dupont@pmt.com', 'password123', 'USER', '0605060708', true),
-(3, 'Claire Bernard', 'claire.bernard@pmt.com', 'password123', 'USER', '0609101112', true),
-(4, 'David Leroy', 'david.leroy@pmt.com', 'password123', 'USER', '0613141516', true),
-(5, 'Emma Petit', 'emma.petit@pmt.com', 'password123', 'USER', '0617181920', true);
-
-
-
 ALTER TABLE user_tl AUTO_INCREMENT = 100;
 ALTER TABLE project_tl AUTO_INCREMENT = 100;
 ALTER TABLE project_task_tl AUTO_INCREMENT = 100;

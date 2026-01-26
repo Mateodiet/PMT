@@ -7,11 +7,22 @@
     height: 48px;
     gap: 10px;
     border-radius: 8px;
-    opacity: 0px;
-    background: #c2c0c0;
+    background: #6B46C1;
     border: none;
     color: white;
+    cursor: pointer;
+    transition: background 0.2s ease;
 }
+
+.button-login:hover {
+    background: #553C9A;
+}
+
+.button-login:disabled {
+    background: #c2c0c0;
+    cursor: not-allowed;
+}
+
 .google-login{
     width: 346px;
     height: 48px;
@@ -31,39 +42,38 @@
     margin-top: 76px;
     margin-left: 450px;
     gap: 4px;
-    opacity: 0px;
-    
 }
 
 .mainnnnn{
-font-size: 28px;
-font-weight: 600;
-line-height: 40px;
-letter-spacing: 0.001em;
-text-align: center;
-text-underline-position: from-font;
-text-decoration-skip-ink: none;
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 40px;
+    letter-spacing: 0.001em;
+    text-align: center;
+    text-underline-position: from-font;
+    text-decoration-skip-ink: none;
+}
 
-}
 @media (min-width: 1280px) and (max-width: 1600px) {
-.main-section{
-    margin-left: 390px !important;
+    .main-section{
+        margin-left: 390px !important;
+    }
+    .second-sec{
+        margin-left: 390px !important;
+    }
+    .margin-left-40{
+        margin-left: 400px !important;
+    }
 }
-.second-sec{
-    margin-left: 390px !important;
-}
-.margin-left-40{
-    margin-left: 400px !important;
-}
-}
+
 @media (min-width: 900px) and (max-width: 1280px) {
-.main-section{
-    margin-left: 280px !important;
-}
-.second-sec{
-    margin-left: 280px !important;
-}
-.margin-left-40{
-    margin-left: 290px !important;
-}
+    .main-section{
+        margin-left: 280px !important;
+    }
+    .second-sec{
+        margin-left: 280px !important;
+    }
+    .margin-left-40{
+        margin-left: 290px !important;
+    }
 }

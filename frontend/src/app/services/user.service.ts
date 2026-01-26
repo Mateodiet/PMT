@@ -8,7 +8,7 @@ import { users } from '../shared/enum';
 })
 export class UserService {
 
-  baseUrl : string = 'https://0b87-223-123-93-176.ngrok-free.app/api';
+  baseUrl : string = 'http://localhost:8081/api';
   constructor(private http : HttpClient) { }
 
   getAllUsers(): Observable<any>{

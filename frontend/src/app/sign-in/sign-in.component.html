@@ -13,14 +13,16 @@
                         <div class="ms-3 mb-4">
                             <p>Enter email</p>
                             <div class="mb-3">
-                                <input type="email" class="form-control" formControlName="email"  placeholder="Enter email">
+                                <input type="email" class="form-control" formControlName="email" placeholder="Enter email">
                             </div>
-                            <p>Enter passowrd</p>
+                            <p>Enter password</p>
                             <div class="mb-3">
                                 <input type="password" class="form-control" formControlName="password" placeholder="Password">
                             </div>
-                            <button class="w-100 mb-4 text-center button-login" (click)="login()">Sign In</button>
-                            <p class="last-line mb-4">Don't have a account yet?<a style="color: hsla(272, 65%, 30%, 1) !important;" href="javascript:void(0)" routerLink="../signup">Get Started</a></p>
+                            <button class="w-100 mb-4 text-center button-login" 
+                                    [disabled]="loginForm.invalid" 
+                                    (click)="login()">Sign In</button>
+                            <p class="last-line mb-4">Don't have an account yet?<a style="color: hsla(272, 65%, 30%, 1) !important;" href="javascript:void(0)" routerLink="../signup">Get Started</a></p>
                         </div>
                     </form>
                 </div>

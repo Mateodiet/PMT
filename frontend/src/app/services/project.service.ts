@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class ProjectService {
-  baseUrl : string = 'https://0b87-223-123-93-176.ngrok-free.app/api';
+  baseUrl : string = 'http://localhost:8081/api';
   constructor(private http : HttpClient) { }
 
   createProject(project: Project) : Observable<any>{
