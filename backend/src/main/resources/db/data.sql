@@ -6,12 +6,12 @@
 -- ============================================
 -- Utilisateurs de test
 -- ============================================
-INSERT INTO user_tl (name, email, password, role, contact_number, is_active) VALUES
-('John Doe', 'john.doe@codesolutions.com', 'password123', 'ADMIN', '+33612345678', TRUE),
-('Jane Smith', 'jane.smith@codesolutions.com', 'password123', 'MEMBER', '+33623456789', TRUE),
-('Bob Wilson', 'bob.wilson@codesolutions.com', 'password123', 'MEMBER', '+33634567890', TRUE),
-('Alice Martin', 'alice.martin@codesolutions.com', 'password123', 'OBSERVER', '+33645678901', TRUE),
-('Charlie Brown', 'charlie.brown@codesolutions.com', 'password123', 'MEMBER', '+33656789012', TRUE);
+INSERT INTO user_tl (user_id, name, email, password, role, contact_number, is_active) VALUES
+(1, 'Alice Martin', 'alice.martin@pmt.com', 'password123', 'ADMIN', '0601020304', true),
+(2, 'Bob Dupont', 'bob.dupont@pmt.com', 'password123', 'USER', '0605060708', true),
+(3, 'Claire Bernard', 'claire.bernard@pmt.com', 'password123', 'USER', '0609101112', true),
+(4, 'David Leroy', 'david.leroy@pmt.com', 'password123', 'USER', '0613141516', true),
+(5, 'Emma Petit', 'emma.petit@pmt.com', 'password123', 'USER', '0617181920', true);
 
 -- ============================================
 -- Projets de test
@@ -93,3 +93,10 @@ INSERT INTO task_user_bridge_tl (user_id_fk, task_id_fk) VALUES
 INSERT INTO task_user_bridge_tl (user_id_fk, task_id_fk) VALUES
 (4, 12),  -- Alice -> UI Design
 (2, 13);  -- Jane -> Flutter Setup
+
+ALTER TABLE user_tl AUTO_INCREMENT = 100;
+ALTER TABLE project_tl AUTO_INCREMENT = 100;
+ALTER TABLE project_task_tl AUTO_INCREMENT = 100;
+ALTER TABLE project_user_bridge_tl AUTO_INCREMENT = 100;
+ALTER TABLE task_user_bridge_tl AUTO_INCREMENT = 100;
+ALTER TABLE task_history_tl AUTO_INCREMENT = 100;

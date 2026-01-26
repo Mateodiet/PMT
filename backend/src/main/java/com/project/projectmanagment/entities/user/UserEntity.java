@@ -22,7 +22,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "user_tl")
 public class UserEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)  // CHANGÉ : AUTO → IDENTITY
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
     private String name;
     @Column(unique = true)

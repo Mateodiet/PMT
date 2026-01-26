@@ -91,15 +91,12 @@ INSERT INTO task_user_bridge_tl (task_user_id, user_id_fk, task_id_fk) VALUES
 -- ============================================
 -- Historique des modifications (exemples)
 -- ============================================
-INSERT INTO task_history_tl (history_id, task_id_fk, modified_by_user_id, modified_by_email, field_name, old_value, new_value, change_description) VALUES
-(1, 1, 1, 'alice.martin@pmt.com', 'creation', NULL, 'API-Authentication', 'Tâche créée'),
-(2, 1, 1, 'alice.martin@pmt.com', 'taskStatus', 'TODO', 'IN_PROGRESS', 'Statut modifié de TODO à IN_PROGRESS'),
-(3, 1, 2, 'bob.dupont@pmt.com', 'taskStatus', 'IN_PROGRESS', 'DONE', 'Statut modifié de IN_PROGRESS à DONE'),
-(4, 4, 1, 'alice.martin@pmt.com', 'creation', NULL, 'API-Tasks-CRUD', 'Tâche créée'),
-(5, 4, 2, 'bob.dupont@pmt.com', 'taskStatus', 'TODO', 'IN_PROGRESS', 'Statut modifié de TODO à IN_PROGRESS'),
-(6, 4, 2, 'bob.dupont@pmt.com', 'priority', 'MEDIUM', 'HIGH', 'Priorité modifiée de MEDIUM à HIGH'),
-(7, 6, 1, 'alice.martin@pmt.com', 'creation', NULL, 'API-Task-History', 'Tâche créée'),
-(8, 6, 2, 'bob.dupont@pmt.com', 'assignment', NULL, 'bob.dupont@pmt.com', 'Tâche assignée à Bob Dupont');
+INSERT INTO user_tl (user_id, name, email, password, role, contact_number, is_active) VALUES
+(1, 'Alice Martin', 'alice.martin@pmt.com', 'password123', 'ADMIN', '0601020304', true),
+(2, 'Bob Dupont', 'bob.dupont@pmt.com', 'password123', 'USER', '0605060708', true),
+(3, 'Claire Bernard', 'claire.bernard@pmt.com', 'password123', 'USER', '0609101112', true),
+(4, 'David Leroy', 'david.leroy@pmt.com', 'password123', 'USER', '0613141516', true),
+(5, 'Emma Petit', 'emma.petit@pmt.com', 'password123', 'USER', '0617181920', true);
 
 
 
