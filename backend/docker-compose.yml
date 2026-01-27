@@ -3,8 +3,6 @@
 # Orchestration des services
 # ============================================
 
-version: '3.8'
-
 services:
   # ============================================
   # Base de données MySQL
@@ -37,7 +35,6 @@ services:
   # Backend Spring Boot
   # ============================================
   backend:
-    image: avertak/pmt-backend:latest
     build:
       context: .
       dockerfile: Dockerfile
@@ -67,7 +64,6 @@ services:
   # Frontend Angular (Nginx)
   # ============================================
   frontend:
-    image: avertak/pmt-frontend:latest
     build:
       context: ../frontend
       dockerfile: Dockerfile
