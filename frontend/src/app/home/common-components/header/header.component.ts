@@ -15,8 +15,8 @@ ngOnInit(){
   this.getUser()
 }
 getUser(){
-  this.user.getUserById(localStorage.getItem('user')!).subscribe({
-    next: res => {
+  this.user.getUserByEmail(localStorage.getItem('user')!).subscribe({
+  next: (res: any) => {
       this.userName = res?.data?.name;
     }
   })

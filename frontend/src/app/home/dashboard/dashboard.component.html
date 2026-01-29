@@ -1,14 +1,130 @@
-<div class="row mt-4">
-    <div class="col-4 mb-3">
-        <span class="row text-center d-block">Total project</span>
-        <span class="row text-center d-block">{{projectCount}}</span>
+<div class="container-fluid mt-4">
+    <h2 class="mb-4">Dashboard</h2>
+    
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-3">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h3 class="text-primary">{{projectCount || 0}}</h3>
+                    <p class="text-muted mb-0">Total Projects</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-3">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h3 class="text-secondary">{{todoCount || 0}}</h3>
+                    <p class="text-muted mb-0">To Do</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-3">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h3 class="text-warning">{{progCount || 0}}</h3>
+                    <p class="text-muted mb-0">In Progress</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-3">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h3 class="text-success">{{doneCount || 0}}</h3>
+                    <p class="text-muted mb-0">Completed</p>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="col-4 mb-3">
-        <span class="row text-center d-block">Total task done</span>
-        <span class="row text-center d-block">{{doneCount}}</span>
-    </div>
-    <div class="col-4 mb-3">
-        <span class="row text-center d-block">Total task in progress</span>
-        <span class="row text-center d-block">{{progCount}}</span>
+
+    <!-- Task Lists by Status -->
+    <div class="row">
+        <div class="col-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">To Do Tasks</h5>
+                </div>
+                <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                    @for (task of todoTasks; track $index) {
+                        <div class="border-bottom pb-2 mb-2">
+                            <strong>{{task.taskName}}</strong>
+                            <br>
+                            <small class="text-muted">{{task.taskDescription}}</small>
+                            <br>
+                            <span class="badge" [class.bg-danger]="task.priority === 'CRITICAL'"
+                                  [class.bg-warning]="task.priority === 'HIGH'"
+                                  [class.bg-info]="task.priority === 'MEDIUM'"
+                                  [class.bg-secondary]="task.priority === 'LOW'">
+                                {{task.priority || 'MEDIUM'}}
+                            </span>
+                            @if(task.taskDueDate) {
+                                <small class="ms-2 text-muted">Due: {{task.taskDueDate}}</small>
+                            }
+                        </div>
+                    }
+                    @if(todoTasks.length === 0) {
+                        <p class="text-muted text-center">No tasks</p>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">In Progress Tasks</h5>
+                </div>
+                <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                    @for (task of progTasks; track $index) {
+                        <div class="border-bottom pb-2 mb-2">
+                            <strong>{{task.taskName}}</strong>
+                            <br>
+                            <small class="text-muted">{{task.taskDescription}}</small>
+                            <br>
+                            <span class="badge" [class.bg-danger]="task.priority === 'CRITICAL'"
+                                  [class.bg-warning]="task.priority === 'HIGH'"
+                                  [class.bg-info]="task.priority === 'MEDIUM'"
+                                  [class.bg-secondary]="task.priority === 'LOW'">
+                                {{task.priority || 'MEDIUM'}}
+                            </span>
+                            @if(task.taskDueDate) {
+                                <small class="ms-2 text-muted">Due: {{task.taskDueDate}}</small>
+                            }
+                        </div>
+                    }
+                    @if(progTasks.length === 0) {
+                        <p class="text-muted text-center">No tasks</p>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Completed Tasks</h5>
+                </div>
+                <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                    @for (task of doneTasks; track $index) {
+                        <div class="border-bottom pb-2 mb-2">
+                            <strong>{{task.taskName}}</strong>
+                            <br>
+                            <small class="text-muted">{{task.taskDescription}}</small>
+                            <br>
+                            <span class="badge" [class.bg-danger]="task.priority === 'CRITICAL'"
+                                  [class.bg-warning]="task.priority === 'HIGH'"
+                                  [class.bg-info]="task.priority === 'MEDIUM'"
+                                  [class.bg-secondary]="task.priority === 'LOW'">
+                                {{task.priority || 'MEDIUM'}}
+                            </span>
+                            @if(task.taskDueDate) {
+                                <small class="ms-2 text-muted">Due: {{task.taskDueDate}}</small>
+                            }
+                        </div>
+                    }
+                    @if(doneTasks.length === 0) {
+                        <p class="text-muted text-center">No tasks</p>
+                    }
+                </div>
+            </div>
+        </div>
     </div>
 </div>

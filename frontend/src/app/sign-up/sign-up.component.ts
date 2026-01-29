@@ -31,7 +31,7 @@ signUpUser(){
     contactNumber: this.signupForm.value.contactNumber ?? '',
   };
   form.isActive = true;
-  this.userService.signUpUser(form).subscribe({
+  this.userService.registerUser(form).subscribe({
     next: res => {
       if(res) this.router.navigate(['../signin']);
     }

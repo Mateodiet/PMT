@@ -7,25 +7,53 @@ import { task } from '../shared/enum';
   providedIn: 'root'
 })
 export class TaskService {
-  baseUrl : string = 'http://localhost:8081/api';
-  constructor(private http : HttpClient) { }
+  baseUrl: string = 'http://localhost:8081/api';
+  
+  constructor(private http: HttpClient) { }
 
-  createTask(task : task) : Observable<any>{
-    return this.http.post(`${this.baseUrl}/tasks/createtask`, task)
+  createTask(task: task): Observable<any> {
+    return this.http.post(`${this.baseUrl}/tasks/createtask`, task);
   }
-  updateTask(taskName : string,task : task) : Observable<any>{
-    return this.http.put(`${this.baseUrl}/tasks/updateTask/${taskName}`, task)
+
+  updateTask(taskName: string, task: task): Observable<any> {
+    return this.http.put(`${this.baseUrl}/tasks/updateTask/${taskName}`, task);
   }
-  deleteTask(taskName : string) : Observable<any>{
+
+  deleteTask(taskName: string): Observable<any> {
     return this.http.delete(`${this.baseUrl}/tasks/deleteTask/${taskName}`);
   }
-  getTaskByName(taskName : string) : Observable<any>{
+
+  getTaskByName(taskName: string): Observable<any> {
     return this.http.get(`${this.baseUrl}/tasks/getTask?taskName=${taskName}`);
   }
-  getTasks() : Observable<any>{
+
+  getTasks(): Observable<any> {
     return this.http.get(`${this.baseUrl}/tasks/getAllTasks`);
   }
-  getTasksInProject(projectname : string): Observable<any>{
-    return this.http.get(`${this.baseUrl}/tasks/getTaskByProject?projectName=${projectname}`)
+
+  getTasksInProject(projectName: string): Observable<any> {
+    return this.http.get(`${this.baseUrl}/tasks/getTaskByProject?projectName=${projectName}`);
+  }
+
+  // Task assignment
+  assignTask(taskName: string, userEmail: string, assignedByEmail: string): Observable<any> {
+    return this.http.post(`${this.baseUrl}/tasks/assignTask`, {
+      taskName,
+      userEmail,
+      assignedByEmail
+    });
+  }
+
+  getAssignedTasks(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/tasks/getAssignedTasks`);
+  }
+
+  getTasksAssignedToUser(email: string): Observable<any> {
+    return this.http.get(`${this.baseUrl}/tasks/getAssignedToUser?email=${email}`);
+  }
+
+  // Task history
+  getTaskHistory(taskName: string): Observable<any> {
+    return this.http.get(`${this.baseUrl}/tasks/getTaskHistory?taskName=${taskName}`);
   }
 }

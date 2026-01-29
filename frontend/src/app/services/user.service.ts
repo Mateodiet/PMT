@@ -1,38 +1,63 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
 import { users } from '../shared/enum';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
+  baseUrl: string = 'http://localhost:8081/api';
 
-  baseUrl : string = 'http://localhost:8081/api';
-  constructor(private http : HttpClient) { }
+  constructor(private http: HttpClient) { }
 
-  getAllUsers(): Observable<any>{
+  // Auth
+  registerUser(user: users): Observable<any> {
+    return this.http.post(`${this.baseUrl}/user/signup`, user);
+  }
+
+  // Alias pour compatibilité
+  signUpUser(user: users): Observable<any> {
+    return this.registerUser(user);
+  }
+
+  loginUser(user: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}/user/login`, user);
+  }
+
+  // User CRUD
+  getAllUsers(): Observable<any> {
     return this.http.get(`${this.baseUrl}/user/getAllUsers`);
   }
-  loginUser(user : users): Observable<any>{
-    return this.http.post(`${this.baseUrl}/user/login`,user);
-  }
-  signUpUser(user : users): Observable<any>{
-    return this.http.post(`${this.baseUrl}/user/signup`,user);
-  }
-  getUserById(email : string): Observable<any>{
+
+  getUserByEmail(email: string): Observable<any> {
     return this.http.get(`${this.baseUrl}/user/getUserByEmail?email=${email}`);
   }
-  deleteUser(email : string): Observable<any>{
+
+  // Alias pour compatibilité (getUserById utilise l'email comme ID)
+  getUserById(email: string): Observable<any> {
+    return this.getUserByEmail(email);
+  }
+
+  updateUser(email: string, user: users): Observable<any> {
+    return this.http.put(`${this.baseUrl}/user/updateUser/${email}`, user);
+  }
+
+  deleteUser(email: string): Observable<any> {
     return this.http.delete(`${this.baseUrl}/user/deleteUser/${email}`);
   }
-  updateUser(email : string,user : users): Observable<any>{
-    return this.http.put(`${this.baseUrl}/user/updateUser/${email}`,user);
+
+  // Dashboard
+  getDashboardData(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/dashboard/getTotalProjects`);
   }
-  getDashboardData(): Observable<any>{
-    return this.http.get(`${this.baseUrl}/dashboard/getTotalProjects`)
+
+  getDashboardTasks(status: string): Observable<any> {
+    return this.http.get(`${this.baseUrl}/dashboard/getTaskByStatus/${status}`);
   }
-  getDashboardTasks(taskStatus : string): Observable<any>{
-    return this.http.get(`${this.baseUrl}/dashboard/getTaskByStatus/${taskStatus}`)
+
+  // Invitations
+  getPendingInvitations(email: string): Observable<any> {
+    return this.http.get(`${this.baseUrl}/user/getPendingInvitations?email=${email}`);
   }
 }

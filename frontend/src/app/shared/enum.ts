@@ -1,23 +1,51 @@
 export interface Project {
-    projectName?: string,
-    projectDescription?: string,
-    creatorEmail?: string,
-    projectStatus?: string
+    projectId?: number;
+    projectName?: string;
+    projectDescription?: string;
+    projectStartDate?: string;
+    projectCreatedDate?: string;
+    creatorEmail?: string;
+    projectStatus?: string;
 }
+
 export interface users {
-    id ?: string,
-    name ?: string,
-    email ?: string,
-    password ?: string,
-    role ?: string,
-    contactNumber ?: string,
-    isActive ?: boolean,
+    userId?: number;
+    name?: string;
+    email?: string;
+    password?: string;
+    role?: string;
+    contactNumber?: string;
+    isActive?: boolean;
 }
 
 export interface task {
-    taskName: string,
-    taskDescription: string,
-    taskStatus: string,
-    projectName: string,
-    creatorEmail: string
+    taskId?: number;
+    taskName: string;
+    taskDescription: string;
+    taskStatus: string;
+    priority?: string;
+    taskDueDate?: string;
+    taskCreatedAt?: string;
+    taskCompletedAt?: string;
+    projectName: string;
+    creatorEmail: string;
+}
+
+export interface ProjectMember {
+    userId: number;
+    email: string;
+    name: string;
+    role: string;
+    status: string;
+    joinedAt: string;
+}
+
+export interface TaskHistory {
+    historyId: number;
+    fieldName: string;
+    oldValue: string;
+    newValue: string;
+    changeDescription: string;
+    modifiedByEmail: string;
+    modifiedAt: string;
 }
