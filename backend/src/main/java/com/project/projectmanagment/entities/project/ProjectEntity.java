@@ -1,7 +1,5 @@
 package com.project.projectmanagment.entities.project;
 
-
-
 import java.sql.Date;
 
 import jakarta.persistence.Column;
@@ -15,7 +13,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 
 @Data
 @NoArgsConstructor
@@ -31,14 +28,17 @@ public class ProjectEntity {
     @Column(unique = true)
     private String projectName;
     private String projectDescription;
+    private Date projectStartDate;
     private Date projectCreatedDate;
     private Date projectStatusUpdatedDate;
     private String projectStatus;
-    private Long taskCreatedBy;// FK points to user table userID
+    private Long taskCreatedBy;
 
     @PrePersist
     public void prePersist() {
         this.projectCreatedDate = new Date(System.currentTimeMillis());
+        if (this.projectStartDate == null) {
+            this.projectStartDate = new Date(System.currentTimeMillis());
+        }
     }
-    
 }

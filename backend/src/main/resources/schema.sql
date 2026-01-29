@@ -29,16 +29,17 @@ CREATE TABLE user_tl (
 );
 
 -- ============================================
--- Table des projets
+-- Table des projets (avec date de début)
 -- ============================================
 CREATE TABLE project_tl (
     project_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     project_name VARCHAR(150) NOT NULL UNIQUE,
     project_description TEXT,
+    project_start_date DATE,
+    project_created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     project_status VARCHAR(50) DEFAULT 'ACTIVE',
     project_status_updated_date DATE,
     task_created_by BIGINT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     
     INDEX idx_project_name (project_name),
     INDEX idx_project_status (project_status),

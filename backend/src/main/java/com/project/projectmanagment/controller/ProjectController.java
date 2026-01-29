@@ -16,21 +16,18 @@ import com.project.projectmanagment.services.ProjectService;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-
-
+import lombok.AllArgsConstructor;
 
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
 @RequestMapping("/api/project")
+@AllArgsConstructor
 public class ProjectController {
+    
     private final ProjectService projectService;
 
-    public ProjectController(ProjectService projectService){
-        this.projectService = projectService;
-    }
-    
     @PostMapping("/create")
-    public ResponseEntity<BaseResponse> insertUser(@RequestBody ProjectModel projectRequest) {
+    public ResponseEntity<BaseResponse> createProject(@RequestBody ProjectModel projectRequest) {
         BaseResponse response = projectService.createProject(projectRequest);
         return new ResponseEntity<>(response, response.getResponseCode());
     }
@@ -41,12 +38,22 @@ public class ProjectController {
         return new ResponseEntity<>(response, response.getResponseCode());
     }
 
+    @PostMapping("/inviteWithRole")
+    public ResponseEntity<BaseResponse> inviteWithRole(@RequestBody java.util.Map<String, String> request) {
+        String email = request.get("email");
+        String projectName = request.get("projectName");
+        String role = request.get("role");
+        String invitedBy = request.get("invitedBy");
+        BaseResponse response = projectService.inviteWithRole(email, projectName, role, invitedBy);
+        return ResponseEntity.status(response.getResponseCode()).body(response);
+    }
+
     @GetMapping("/projectInviteAccept/{email}/{projectName}")
-    public ResponseEntity<BaseResponse> getMethodName(@PathVariable String email, @PathVariable String projectName) {
+    public ResponseEntity<BaseResponse> acceptInvitation(@PathVariable String email, @PathVariable String projectName) {
         BaseResponse response = projectService.acceptInvitation(email, projectName);
         return new ResponseEntity<>(response, response.getResponseCode());
     }
-    
+
     @PutMapping("/updateProject/{projectName}")
     public ResponseEntity<?> updateProject(@PathVariable String projectName, @RequestBody ProjectModel projectUpdateRequest) {
         BaseResponse response = projectService.updateProjectServiceMethod(projectName, projectUpdateRequest);
@@ -54,44 +61,51 @@ public class ProjectController {
     }
 
     @DeleteMapping("/deleteProject/{projectName}")
-    public ResponseEntity<?> deleteProject(@PathVariable String projectName){
+    public ResponseEntity<?> deleteProject(@PathVariable String projectName) {
         BaseResponse response = projectService.getDeleteProjectServiceMethod(projectName);
         return new ResponseEntity<>(response, response.getResponseCode());
     }
 
     @GetMapping("/getAllProjects")
-    public  ResponseEntity<?> getAll() {
+    public ResponseEntity<?> getAll() {
         BaseResponse response = projectService.getAllProjects();
         return new ResponseEntity<>(response, response.getResponseCode());
     }
 
     @GetMapping("/getProject")
-    public  ResponseEntity<?> getProject(@RequestParam String projectName ) {
+    public ResponseEntity<?> getProject(@RequestParam String projectName) {
         BaseResponse response = projectService.getProject(projectName);
         return new ResponseEntity<>(response, response.getResponseCode());
     }
-    
 
     @GetMapping("/inviteWithRole/{email}/{projectName}/{role}")
-    public ResponseEntity<BaseResponse> inviteWithRole(
-            @PathVariable String email, 
+    public ResponseEntity<BaseResponse> inviteWithRoleGet(
+            @PathVariable String email,
             @PathVariable String projectName,
-            @PathVariable String role){
+            @PathVariable String role) {
         BaseResponse response = projectService.inviteWithRole(email, projectName, role, null);
         return ResponseEntity.status(response.getResponseCode()).body(response);
     }
 
     @PutMapping("/updateMemberRole/{email}/{projectName}/{role}")
     public ResponseEntity<BaseResponse> updateMemberRole(
-            @PathVariable String email, 
+            @PathVariable String email,
             @PathVariable String projectName,
-            @PathVariable String role){
+            @PathVariable String role) {
         BaseResponse response = projectService.updateMemberRole(email, projectName, role);
         return ResponseEntity.status(response.getResponseCode()).body(response);
     }
 
+    @DeleteMapping("/removeMember/{email}/{projectName}")
+    public ResponseEntity<BaseResponse> removeMember(
+            @PathVariable String email,
+            @PathVariable String projectName) {
+        BaseResponse response = projectService.removeMember(email, projectName);
+        return ResponseEntity.status(response.getResponseCode()).body(response);
+    }
+
     @GetMapping("/getProjectMembers/{projectName}")
-    public ResponseEntity<BaseResponse> getProjectMembers(@PathVariable String projectName){
+    public ResponseEntity<BaseResponse> getProjectMembers(@PathVariable String projectName) {
         BaseResponse response = projectService.getProjectMembers(projectName);
         return ResponseEntity.status(response.getResponseCode()).body(response);
     }

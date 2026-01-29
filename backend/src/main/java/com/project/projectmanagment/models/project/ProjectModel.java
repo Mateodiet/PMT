@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 public class ProjectModel {
     private String projectName;
     private String projectDescription;
+    private Date projectStartDate;
     private String projectStatus;
     private String creatorEmail;
 }

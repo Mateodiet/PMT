@@ -24,9 +24,11 @@ import com.project.projectmanagment.repositories.task.TasksRepo;
 import com.project.projectmanagment.repositories.user.UserRepo;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class ProjectService {
     private final ProjectRepo projectRepo;
     private final UserRepo userRepo;
@@ -35,35 +37,35 @@ public class ProjectService {
     private final TasksRepo tasksRepo;
     private final EmailService emailService;
 
-
-    public BaseResponse createProject(ProjectModel projectRequest){
+    public BaseResponse createProject(ProjectModel projectRequest) {
         Optional<ProjectEntity> projectDbData = projectRepo.findByProjectName(projectRequest.getProjectName());
-        if(projectDbData.isPresent()){
+        if (projectDbData.isPresent()) {
             return BaseResponse.builder()
                 .responseCode(HttpStatus.CONFLICT)
                 .responseDesc("Project Already Exists").build();
         }
 
         Optional<UserEntity> userDbData = userRepo.findByEmail(projectRequest.getCreatorEmail());
-        if(!userDbData.isPresent()){
+        if (!userDbData.isPresent()) {
             return BaseResponse.builder()
                 .responseCode(HttpStatus.NOT_FOUND)
                 .responseDesc("User Does not Exists").build();
         }
 
         ProjectEntity projectSaved = projectRepo.save(
-          ProjectEntity.builder()
-          .projectName(projectRequest.getProjectName())
-          .projectDescription(projectRequest.getProjectDescription())
-          .projectStatus(projectRequest.getProjectStatus())
-          .taskCreatedBy(userDbData.get().getUserId())
-          .build()  
+            ProjectEntity.builder()
+                .projectName(projectRequest.getProjectName())
+                .projectDescription(projectRequest.getProjectDescription())
+                .projectStartDate(projectRequest.getProjectStartDate())
+                .projectStatus(projectRequest.getProjectStatus())
+                .taskCreatedBy(userDbData.get().getUserId())
+                .build()
         );
 
-        if(projectSaved==null){
+        if (projectSaved == null) {
             return BaseResponse.builder()
-            .responseCode(HttpStatus.METHOD_FAILURE)
-            .responseDesc("Unable to Save Data").build();
+                .responseCode(HttpStatus.INTERNAL_SERVER_ERROR)
+                .responseDesc("Unable to Save Data").build();
         }
 
         // Ajouter le créateur comme ADMIN du projet
@@ -72,95 +74,92 @@ public class ProjectService {
                 .userIdFK(userDbData.get().getUserId())
                 .projectIdFk(projectSaved.getProjectId())
                 .projectRole("ADMIN")
-                .acceptance('a') // Automatiquement accepté pour le créateur
+                .acceptance('a')
                 .build()
         );
 
+        log.info("Project '{}' created by {}", projectRequest.getProjectName(), projectRequest.getCreatorEmail());
+
         return BaseResponse.builder()
-        .responseCode(HttpStatus.OK)
-        .responseDesc("Success").build();
+            .responseCode(HttpStatus.OK)
+            .responseDesc("Success")
+            .data(projectSaved)
+            .build();
     }
 
-    public BaseResponse invite(String email, String projectName){
+    public BaseResponse invite(String email, String projectName) {
         return inviteWithRole(email, projectName, "MEMBER", null);
     }
 
     /**
      * Invite un utilisateur à rejoindre un projet avec un rôle spécifique
-     * @param email Email de l'utilisateur à inviter
-     * @param projectName Nom du projet
-     * @param role Rôle: ADMIN, MEMBER, OBSERVER
-     * @param invitedByEmail Email de la personne qui invite (optionnel)
      */
-    public BaseResponse inviteWithRole(String email, String projectName, String role, String invitedByEmail){
-
+    public BaseResponse inviteWithRole(String email, String projectName, String role, String invitedByEmail) {
         Optional<UserEntity> userDbData = userRepo.findByEmail(email);
 
-        if(!userDbData.isPresent()){
+        if (!userDbData.isPresent()) {
             return BaseResponse.builder()
                 .responseCode(HttpStatus.NOT_FOUND)
-                .responseDesc("User Does not Exists").build();
+                .responseDesc("User Does not Exists. Please ask them to register first.").build();
         }
 
         Optional<ProjectEntity> projectDbdata = projectRepo.findByProjectName(projectName);
 
-        if(!projectDbdata.isPresent()){
+        if (!projectDbdata.isPresent()) {
             return BaseResponse.builder()
                 .responseCode(HttpStatus.NOT_FOUND)
                 .responseDesc("Project Does not Exists").build();
         }
 
         Optional<ProjectUserBridge> projectInviteDbData = projectUserBridgeRepo.findByUserIdFKAndProjectIdFk(
-            userDbData.get().getUserId(), 
+            userDbData.get().getUserId(),
             projectDbdata.get().getProjectId()
         );
-        
-        if(projectInviteDbData.isPresent()){
+
+        if (projectInviteDbData.isPresent()) {
             return BaseResponse.builder()
-            .responseCode(HttpStatus.CREATED)
-            .responseDesc("Already Invited").build();
+                .responseCode(HttpStatus.CONFLICT)
+                .responseDesc("User already invited or member of this project").build();
         }
 
         // Valider le rôle
         String validRole = validateRole(role);
 
-        projectUserBridgeRepo.save(
+        ProjectUserBridge savedBridge = projectUserBridgeRepo.save(
             ProjectUserBridge.builder()
                 .userIdFK(userDbData.get().getUserId())
                 .projectIdFk(projectDbdata.get().getProjectId())
                 .projectRole(validRole)
-                .acceptance('p')
+                .acceptance('p') // pending
                 .build()
         );
 
         // Générer le lien d'invitation
-        String inviteLink = "/api/project/projectInviteAccept/" + email + "/" + projectName;
-        
-        // Envoyer l'email d'invitation
-        String inviterName = invitedByEmail != null ? invitedByEmail : "Un administrateur";
-        emailService.sendProjectInvitation(
-            email,
-            projectName,
-            inviterName,
-            inviteLink
-        );
+        String inviteLink = "http://localhost/api/project/projectInviteAccept/" + email + "/" + projectName;
 
-        Map<String, String> url = new HashMap<>();
-        url.put("inviteLink", inviteLink);
-        url.put("role", validRole);
-        
+        // Envoyer l'email d'invitation
+        String inviterName = invitedByEmail != null ? invitedByEmail : "An administrator";
+        emailService.sendProjectInvitation(email, projectName, inviterName, inviteLink);
+
+        log.info("Invitation sent to {} for project '{}' with role {}", email, projectName, validRole);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("inviteLink", inviteLink);
+        response.put("role", validRole);
+        response.put("invitedEmail", email);
+        response.put("status", "pending");
+
         return BaseResponse.builder()
             .responseCode(HttpStatus.OK)
-            .responseDesc("success")
-            .data(url)
+            .responseDesc("Invitation sent successfully")
+            .data(response)
             .build();
     }
 
-    public BaseResponse acceptInvitation(String email, String projectName){
-
+    public BaseResponse acceptInvitation(String email, String projectName) {
         Optional<UserEntity> userDbData = userRepo.findByEmail(email);
 
-        if(!userDbData.isPresent()){
+        if (!userDbData.isPresent()) {
             return BaseResponse.builder()
                 .responseCode(HttpStatus.NOT_FOUND)
                 .responseDesc("User Does not Exists").build();
@@ -168,47 +167,48 @@ public class ProjectService {
 
         Optional<ProjectEntity> projectDbdata = projectRepo.findByProjectName(projectName);
 
-        if(!projectDbdata.isPresent()){
+        if (!projectDbdata.isPresent()) {
             return BaseResponse.builder()
                 .responseCode(HttpStatus.NOT_FOUND)
                 .responseDesc("Project Does not Exists").build();
         }
-        
+
         Optional<ProjectUserBridge> projectInviteDbData = projectUserBridgeRepo.findByUserIdFKAndProjectIdFk(
-            userDbData.get().getUserId(), 
+            userDbData.get().getUserId(),
             projectDbdata.get().getProjectId()
         );
-        
-        if(!projectInviteDbData.isPresent()){
+
+        if (!projectInviteDbData.isPresent()) {
             return BaseResponse.builder()
-            .responseCode(HttpStatus.NOT_FOUND)
-            .responseDesc("You were not invited").build();
+                .responseCode(HttpStatus.NOT_FOUND)
+                .responseDesc("You were not invited to this project").build();
         }
-        
+
         ProjectUserBridge projectInviteData = projectInviteDbData.get();
-        if(projectInviteData.getAcceptance() == 'a'){
+        if (projectInviteData.getAcceptance() == 'a') {
             return BaseResponse.builder()
-            .responseCode(HttpStatus.NOT_FOUND)
-            .responseDesc("You have already accepted the invite to project " + projectName).build();
+                .responseCode(HttpStatus.CONFLICT)
+                .responseDesc("You have already accepted the invite to project " + projectName).build();
         }
-        
+
         projectInviteData.setAcceptance('a');
         projectUserBridgeRepo.save(projectInviteData);
 
+        log.info("User {} accepted invitation to project '{}'", email, projectName);
+
         return BaseResponse.builder()
             .responseCode(HttpStatus.OK)
-            .responseDesc("success")
-            .data(null)
+            .responseDesc("Invitation accepted successfully")
             .build();
     }
 
     /**
      * Met à jour le rôle d'un membre dans un projet
      */
-    public BaseResponse updateMemberRole(String email, String projectName, String newRole){
+    public BaseResponse updateMemberRole(String email, String projectName, String newRole) {
         Optional<UserEntity> userDbData = userRepo.findByEmail(email);
 
-        if(!userDbData.isPresent()){
+        if (!userDbData.isPresent()) {
             return BaseResponse.builder()
                 .responseCode(HttpStatus.NOT_FOUND)
                 .responseDesc("User Does not Exists").build();
@@ -216,18 +216,18 @@ public class ProjectService {
 
         Optional<ProjectEntity> projectDbdata = projectRepo.findByProjectName(projectName);
 
-        if(!projectDbdata.isPresent()){
+        if (!projectDbdata.isPresent()) {
             return BaseResponse.builder()
                 .responseCode(HttpStatus.NOT_FOUND)
                 .responseDesc("Project Does not Exists").build();
         }
 
         Optional<ProjectUserBridge> projectMemberData = projectUserBridgeRepo.findByUserIdFKAndProjectIdFk(
-            userDbData.get().getUserId(), 
+            userDbData.get().getUserId(),
             projectDbdata.get().getProjectId()
         );
 
-        if(!projectMemberData.isPresent()){
+        if (!projectMemberData.isPresent()) {
             return BaseResponse.builder()
                 .responseCode(HttpStatus.NOT_FOUND)
                 .responseDesc("User is not a member of this project").build();
@@ -238,20 +238,67 @@ public class ProjectService {
         memberData.setProjectRole(validRole);
         projectUserBridgeRepo.save(memberData);
 
+        log.info("Role updated for {} in project '{}' to {}", email, projectName, validRole);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("email", email);
+        response.put("newRole", validRole);
+
         return BaseResponse.builder()
             .responseCode(HttpStatus.OK)
             .responseDesc("Role updated successfully")
-            .data(memberData)
+            .data(response)
+            .build();
+    }
+
+    /**
+     * Supprime un membre d'un projet
+     */
+    public BaseResponse removeMember(String email, String projectName) {
+        Optional<UserEntity> userDbData = userRepo.findByEmail(email);
+
+        if (!userDbData.isPresent()) {
+            return BaseResponse.builder()
+                .responseCode(HttpStatus.NOT_FOUND)
+                .responseDesc("User Does not Exists").build();
+        }
+
+        Optional<ProjectEntity> projectDbdata = projectRepo.findByProjectName(projectName);
+
+        if (!projectDbdata.isPresent()) {
+            return BaseResponse.builder()
+                .responseCode(HttpStatus.NOT_FOUND)
+                .responseDesc("Project Does not Exists").build();
+        }
+
+        Optional<ProjectUserBridge> projectMemberData = projectUserBridgeRepo.findByUserIdFKAndProjectIdFk(
+            userDbData.get().getUserId(),
+            projectDbdata.get().getProjectId()
+        );
+
+        if (!projectMemberData.isPresent()) {
+            return BaseResponse.builder()
+                .responseCode(HttpStatus.NOT_FOUND)
+                .responseDesc("User is not a member of this project").build();
+        }
+
+        projectUserBridgeRepo.delete(projectMemberData.get());
+
+        log.info("Member {} removed from project '{}'", email, projectName);
+
+        return BaseResponse.builder()
+            .responseCode(HttpStatus.OK)
+            .responseDesc("Member removed successfully")
             .build();
     }
 
     /**
      * Récupère les membres d'un projet avec leurs rôles
      */
-    public BaseResponse getProjectMembers(String projectName){
+    public BaseResponse getProjectMembers(String projectName) {
         Optional<ProjectEntity> projectDbdata = projectRepo.findByProjectName(projectName);
 
-        if(!projectDbdata.isPresent()){
+        if (!projectDbdata.isPresent()) {
             return BaseResponse.builder()
                 .responseCode(HttpStatus.NOT_FOUND)
                 .responseDesc("Project Does not Exists").build();
@@ -259,10 +306,12 @@ public class ProjectService {
 
         List<ProjectUserBridge> members = projectUserBridgeRepo.findByProjectIdFk(projectDbdata.get().getProjectId());
 
-        if(members.isEmpty()){
+        if (members.isEmpty()) {
             return BaseResponse.builder()
-                .responseCode(HttpStatus.NOT_FOUND)
-                .responseDesc("No members found").build();
+                .responseCode(HttpStatus.OK)
+                .responseDesc("No members found")
+                .data(List.of())
+                .build();
         }
 
         List<Long> userIds = members.stream()
@@ -276,8 +325,9 @@ public class ProjectService {
             Optional<UserEntity> user = users.stream()
                 .filter(u -> u.getUserId().equals(member.getUserIdFK()))
                 .findFirst();
-            
-            if(user.isPresent()){
+
+            if (user.isPresent()) {
+                memberInfo.put("userId", user.get().getUserId());
                 memberInfo.put("email", user.get().getEmail());
                 memberInfo.put("name", user.get().getName());
                 memberInfo.put("role", member.getProjectRole());
@@ -285,7 +335,7 @@ public class ProjectService {
                 memberInfo.put("joinedAt", member.getAssignmentDate());
             }
             return memberInfo;
-        }).collect(Collectors.toList());
+        }).filter(m -> !m.isEmpty()).collect(Collectors.toList());
 
         return BaseResponse.builder()
             .responseCode(HttpStatus.OK)
@@ -294,10 +344,10 @@ public class ProjectService {
             .build();
     }
 
-    public BaseResponse updateProjectServiceMethod(String projectName, ProjectModel projectUpdateRequest){
+    public BaseResponse updateProjectServiceMethod(String projectName, ProjectModel projectUpdateRequest) {
         Optional<ProjectEntity> projectDbdata = projectRepo.findByProjectName(projectName);
 
-        if(!projectDbdata.isPresent()){
+        if (!projectDbdata.isPresent()) {
             return BaseResponse.builder()
                 .responseCode(HttpStatus.NOT_FOUND)
                 .responseDesc("Project Does not Exists").build();
@@ -305,37 +355,36 @@ public class ProjectService {
 
         ProjectEntity projectData = projectDbdata.get();
 
-        if(projectUpdateRequest.getProjectStatus() != null && !projectUpdateRequest.getProjectStatus().equals(projectData.getProjectStatus())){
+        if (projectUpdateRequest.getProjectStatus() != null && !projectUpdateRequest.getProjectStatus().equals(projectData.getProjectStatus())) {
             projectData.setProjectStatus(projectUpdateRequest.getProjectStatus());
             projectData.setProjectStatusUpdatedDate(new Date(System.currentTimeMillis()));
         }
 
-        projectData.setProjectName(projectUpdateRequest.getProjectName()!=null && !projectUpdateRequest.getProjectName().isEmpty()?
-            projectUpdateRequest.getProjectName():projectData.getProjectName()
-        );
+        if (projectUpdateRequest.getProjectName() != null && !projectUpdateRequest.getProjectName().isEmpty()) {
+            projectData.setProjectName(projectUpdateRequest.getProjectName());
+        }
 
-        projectData.setProjectDescription(projectUpdateRequest.getProjectDescription()!=null && !projectUpdateRequest.getProjectDescription().isEmpty()?
-            projectUpdateRequest.getProjectDescription():projectData.getProjectDescription()
-        );
+        if (projectUpdateRequest.getProjectDescription() != null && !projectUpdateRequest.getProjectDescription().isEmpty()) {
+            projectData.setProjectDescription(projectUpdateRequest.getProjectDescription());
+        }
 
-        projectData.setProjectStatus(projectUpdateRequest.getProjectStatus()!=null && !projectUpdateRequest.getProjectStatus().isEmpty()?
-            projectUpdateRequest.getProjectStatus():projectData.getProjectStatus()
-        );
-        
+        if (projectUpdateRequest.getProjectStartDate() != null) {
+            projectData.setProjectStartDate(projectUpdateRequest.getProjectStartDate());
+        }
+
         projectRepo.save(projectData);
 
         return BaseResponse.builder()
             .responseCode(HttpStatus.OK)
             .responseDesc("success")
-            .data(null)
+            .data(projectData)
             .build();
     }
 
-
-    public BaseResponse getDeleteProjectServiceMethod(String projectName){
+    public BaseResponse getDeleteProjectServiceMethod(String projectName) {
         Optional<ProjectEntity> projectDbdata = projectRepo.findByProjectName(projectName);
 
-        if(!projectDbdata.isPresent()){
+        if (!projectDbdata.isPresent()) {
             return BaseResponse.builder()
                 .responseCode(HttpStatus.NOT_FOUND)
                 .responseDesc("Project Does not Exists").build();
@@ -343,34 +392,34 @@ public class ProjectService {
 
         List<ProjectTask> projectTasksList = tasksRepo.findByProjectIdFk(projectDbdata.get().getProjectId());
 
-        if(!projectTasksList.isEmpty()){
-
-            List<TaskUserBridge> tasUserList = taskUserBridgeRepo.findByTaskIdFkIn(projectTasksList.stream()
-                                             .map(ProjectTask::getTaskId)  
-                                             .collect(Collectors.toList()));
-            if(!tasUserList.isEmpty()){
+        if (!projectTasksList.isEmpty()) {
+            List<TaskUserBridge> tasUserList = taskUserBridgeRepo.findByTaskIdFkIn(
+                projectTasksList.stream()
+                    .map(ProjectTask::getTaskId)
+                    .collect(Collectors.toList())
+            );
+            if (!tasUserList.isEmpty()) {
                 taskUserBridgeRepo.deleteAll(tasUserList);
             }
-
             tasksRepo.deleteAll(projectTasksList);
         }
 
-        // Supprimer les membres du projet
         List<ProjectUserBridge> projectMembers = projectUserBridgeRepo.findByProjectIdFk(projectDbdata.get().getProjectId());
-        if(!projectMembers.isEmpty()){
+        if (!projectMembers.isEmpty()) {
             projectUserBridgeRepo.deleteAll(projectMembers);
         }
 
         projectRepo.delete(projectDbdata.get());
-        
+
+        log.info("Project '{}' deleted", projectName);
+
         return BaseResponse.builder()
             .responseCode(HttpStatus.OK)
             .responseDesc("success")
-            .data(null)
             .build();
     }
 
-    public BaseResponse getAllProjects(){
+    public BaseResponse getAllProjects() {
         return BaseResponse.builder()
             .responseCode(HttpStatus.OK)
             .responseDesc("success")
@@ -378,12 +427,10 @@ public class ProjectService {
             .build();
     }
 
-
-    public BaseResponse getProject(String projectName){
-
+    public BaseResponse getProject(String projectName) {
         Optional<ProjectEntity> projectDbdata = projectRepo.findByProjectName(projectName);
 
-        if(!projectDbdata.isPresent()){
+        if (!projectDbdata.isPresent()) {
             return BaseResponse.builder()
                 .responseCode(HttpStatus.NOT_FOUND)
                 .responseDesc("Project Does not Exists").build();
@@ -396,15 +443,12 @@ public class ProjectService {
             .build();
     }
 
-    /**
-     * Valide et normalise le rôle
-     */
-    private String validateRole(String role){
-        if(role == null || role.isEmpty()){
+    private String validateRole(String role) {
+        if (role == null || role.isEmpty()) {
             return "MEMBER";
         }
         String upperRole = role.toUpperCase();
-        if(upperRole.equals("ADMIN") || upperRole.equals("MEMBER") || upperRole.equals("OBSERVER")){
+        if (upperRole.equals("ADMIN") || upperRole.equals("MEMBER") || upperRole.equals("OBSERVER")) {
             return upperRole;
         }
         return "MEMBER";
