@@ -2,16 +2,17 @@
     <div class="d-flex justify-content-between align-items-center mt-3 mb-4">
         <h2>Project: {{projectName}}</h2>
         <div>
-            @if(canModify()) {
-                <button class="btn btn-outline-primary me-2" (click)="openTaskModal(taskContent, false)">
-                    + Create Task
-                </button>
-            }
-            @if(isAdmin()) {
-                <button class="btn btn-outline-success" (click)="openInviteModal(inviteContent)">
-                    + Invite Member
-                </button>
-            }
+            <span class="badge bg-info me-2">Role: {{currentUserRole || 'Loading...'}}</span>
+            <button class="btn btn-outline-primary me-2" 
+                    *ngIf="canModify()" 
+                    (click)="openTaskModal(taskContent, false)">
+                + Create Task
+            </button>
+            <button class="btn btn-outline-success" 
+                    *ngIf="isAdmin()" 
+                    (click)="openInviteModal(inviteContent)">
+                + Invite Member
+            </button>
         </div>
     </div>
 
@@ -20,133 +21,106 @@
             <button ngbNavLink>Tasks Board</button>
             <ng-template ngbNavContent>
                 <div class="row">
+                    <!-- TO DO Column -->
                     <div class="col-4">
                         <div class="card">
                             <div class="card-header bg-secondary text-white">
                                 <h5 class="mb-0">To Do ({{todo.length}})</h5>
                             </div>
                             <div class="card-body" style="max-height: 500px; overflow-y: auto;">
-                                @for (item of todo; track $index) {
-                                    <div class="card mb-2 shadow-sm">
-                                        <div class="card-body p-3">
-                                            <div class="d-flex justify-content-between">
-                                                <h6 class="mb-1">{{item.taskName}}</h6>
-                                                <div ngbDropdown>
-                                                    <button class="btn btn-sm btn-link p-0" ngbDropdownToggle>...</button>
-                                                    <div ngbDropdownMenu>
-                                                        @if(canModify()) {
-                                                            <button ngbDropdownItem (click)="openTaskModal(taskContent, true, item)">Edit</button>
-                                                            <button ngbDropdownItem (click)="openAssignModal(assignContent, item)">Assign</button>
-                                                        }
-                                                        <button ngbDropdownItem (click)="openHistoryModal(historyContent, item)">History</button>
-                                                        @if(isAdmin()) {
-                                                            <button ngbDropdownItem class="text-danger" (click)="deleteTask(item.taskName)">Delete</button>
-                                                        }
-                                                    </div>
+                                <div class="card mb-2 shadow-sm" *ngFor="let item of todo">
+                                    <div class="card-body p-3">
+                                        <div class="d-flex justify-content-between">
+                                            <h6 class="mb-1">{{item.taskName}}</h6>
+                                            <div ngbDropdown>
+                                                <button class="btn btn-sm btn-link p-0" ngbDropdownToggle>...</button>
+                                                <div ngbDropdownMenu>
+                                                    <button ngbDropdownItem *ngIf="canModify()" (click)="openTaskModal(taskContent, true, item)">Edit</button>
+                                                    <button ngbDropdownItem *ngIf="canModify()" (click)="openAssignModal(assignContent, item)">Assign</button>
+                                                    <button ngbDropdownItem (click)="openHistoryModal(historyContent, item)">History</button>
+                                                    <button ngbDropdownItem class="text-danger" *ngIf="isAdmin()" (click)="deleteTask(item.taskName)">Delete</button>
                                                 </div>
                                             </div>
-                                            <p class="text-muted small mb-2">{{item.taskDescription}}</p>
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <span class="badge" [ngClass]="getPriorityClass(item.priority || 'MEDIUM')">
-                                                    {{item.priority || 'MEDIUM'}}
-                                                </span>
-                                                @if(item.taskDueDate) {
-                                                    <small class="text-muted">Due: {{item.taskDueDate}}</small>
-                                                }
-                                            </div>
+                                        </div>
+                                        <p class="text-muted small mb-2">{{item.taskDescription}}</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="badge" [ngClass]="getPriorityClass(item.priority)">
+                                                {{item.priority || 'MEDIUM'}}
+                                            </span>
+                                            <small class="text-muted" *ngIf="item.taskDueDate">Due: {{item.taskDueDate}}</small>
                                         </div>
                                     </div>
-                                }
-                                @if(todo.length === 0) {
-                                    <p class="text-muted text-center">No tasks</p>
-                                }
+                                </div>
+                                <p class="text-muted text-center" *ngIf="todo.length === 0">No tasks</p>
                             </div>
                         </div>
                     </div>
 
+                    <!-- IN PROGRESS Column -->
                     <div class="col-4">
                         <div class="card">
                             <div class="card-header bg-warning">
                                 <h5 class="mb-0">In Progress ({{progg.length}})</h5>
                             </div>
                             <div class="card-body" style="max-height: 500px; overflow-y: auto;">
-                                @for (item of progg; track $index) {
-                                    <div class="card mb-2 shadow-sm border-warning">
-                                        <div class="card-body p-3">
-                                            <div class="d-flex justify-content-between">
-                                                <h6 class="mb-1">{{item.taskName}}</h6>
-                                                <div ngbDropdown>
-                                                    <button class="btn btn-sm btn-link p-0" ngbDropdownToggle>...</button>
-                                                    <div ngbDropdownMenu>
-                                                        @if(canModify()) {
-                                                            <button ngbDropdownItem (click)="openTaskModal(taskContent, true, item)">Edit</button>
-                                                            <button ngbDropdownItem (click)="openAssignModal(assignContent, item)">Assign</button>
-                                                        }
-                                                        <button ngbDropdownItem (click)="openHistoryModal(historyContent, item)">History</button>
-                                                        @if(isAdmin()) {
-                                                            <button ngbDropdownItem class="text-danger" (click)="deleteTask(item.taskName)">Delete</button>
-                                                        }
-                                                    </div>
+                                <div class="card mb-2 shadow-sm border-warning" *ngFor="let item of progg">
+                                    <div class="card-body p-3">
+                                        <div class="d-flex justify-content-between">
+                                            <h6 class="mb-1">{{item.taskName}}</h6>
+                                            <div ngbDropdown>
+                                                <button class="btn btn-sm btn-link p-0" ngbDropdownToggle>...</button>
+                                                <div ngbDropdownMenu>
+                                                    <button ngbDropdownItem *ngIf="canModify()" (click)="openTaskModal(taskContent, true, item)">Edit</button>
+                                                    <button ngbDropdownItem *ngIf="canModify()" (click)="openAssignModal(assignContent, item)">Assign</button>
+                                                    <button ngbDropdownItem (click)="openHistoryModal(historyContent, item)">History</button>
+                                                    <button ngbDropdownItem class="text-danger" *ngIf="isAdmin()" (click)="deleteTask(item.taskName)">Delete</button>
                                                 </div>
                                             </div>
-                                            <p class="text-muted small mb-2">{{item.taskDescription}}</p>
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <span class="badge" [ngClass]="getPriorityClass(item.priority || 'MEDIUM')">
-                                                    {{item.priority || 'MEDIUM'}}
-                                                </span>
-                                                @if(item.taskDueDate) {
-                                                    <small class="text-muted">Due: {{item.taskDueDate}}</small>
-                                                }
-                                            </div>
+                                        </div>
+                                        <p class="text-muted small mb-2">{{item.taskDescription}}</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="badge" [ngClass]="getPriorityClass(item.priority)">
+                                                {{item.priority || 'MEDIUM'}}
+                                            </span>
+                                            <small class="text-muted" *ngIf="item.taskDueDate">Due: {{item.taskDueDate}}</small>
                                         </div>
                                     </div>
-                                }
-                                @if(progg.length === 0) {
-                                    <p class="text-muted text-center">No tasks</p>
-                                }
+                                </div>
+                                <p class="text-muted text-center" *ngIf="progg.length === 0">No tasks</p>
                             </div>
                         </div>
                     </div>
 
+                    <!-- DONE Column -->
                     <div class="col-4">
                         <div class="card">
                             <div class="card-header bg-success text-white">
                                 <h5 class="mb-0">Done ({{done.length}})</h5>
                             </div>
                             <div class="card-body" style="max-height: 500px; overflow-y: auto;">
-                                @for (item of done; track $index) {
-                                    <div class="card mb-2 shadow-sm border-success">
-                                        <div class="card-body p-3">
-                                            <div class="d-flex justify-content-between">
-                                                <h6 class="mb-1">{{item.taskName}}</h6>
-                                                <div ngbDropdown>
-                                                    <button class="btn btn-sm btn-link p-0" ngbDropdownToggle>...</button>
-                                                    <div ngbDropdownMenu>
-                                                        @if(canModify()) {
-                                                            <button ngbDropdownItem (click)="openTaskModal(taskContent, true, item)">Edit</button>
-                                                        }
-                                                        <button ngbDropdownItem (click)="openHistoryModal(historyContent, item)">History</button>
-                                                        @if(isAdmin()) {
-                                                            <button ngbDropdownItem class="text-danger" (click)="deleteTask(item.taskName)">Delete</button>
-                                                        }
-                                                    </div>
+                                <div class="card mb-2 shadow-sm border-success" *ngFor="let item of done">
+                                    <div class="card-body p-3">
+                                        <div class="d-flex justify-content-between">
+                                            <h6 class="mb-1">{{item.taskName}}</h6>
+                                            <div ngbDropdown>
+                                                <button class="btn btn-sm btn-link p-0" ngbDropdownToggle>...</button>
+                                                <div ngbDropdownMenu>
+                                                    <button ngbDropdownItem *ngIf="canModify()" (click)="openTaskModal(taskContent, true, item)">Edit</button>
+                                                    <button ngbDropdownItem (click)="openHistoryModal(historyContent, item)">History</button>
+                                                    <button ngbDropdownItem class="text-danger" *ngIf="isAdmin()" (click)="deleteTask(item.taskName)">Delete</button>
                                                 </div>
                                             </div>
-                                            <p class="text-muted small mb-2">{{item.taskDescription}}</p>
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <span class="badge" [ngClass]="getPriorityClass(item.priority || 'MEDIUM')">
-                                                    {{item.priority || 'MEDIUM'}}
-                                                </span>
-                                                @if(item.taskDueDate) {
-                                                    <small class="text-success">Completed</small>
-                                                }
-                                            </div>
+                                        </div>
+                                        <p class="text-muted small mb-2">{{item.taskDescription}}</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="badge" [ngClass]="getPriorityClass(item.priority)">
+                                                {{item.priority || 'MEDIUM'}}
+                                            </span>
+                                            <small class="text-success" *ngIf="item.taskDueDate">Completed</small>
                                         </div>
                                     </div>
-                                }
-                                @if(done.length === 0) {
-                                    <p class="text-muted text-center">No tasks</p>
-                                }
+                                </div>
+                                <p class="text-muted text-center" *ngIf="done.length === 0">No tasks</p>
                             </div>
                         </div>
                     </div>
@@ -159,9 +133,7 @@
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">Project Members</h5>
-                        @if(isAdmin()) {
-                            <button class="btn btn-sm btn-success" (click)="openInviteModal(inviteContent)">+ Invite Member</button>
-                        }
+                        <button class="btn btn-sm btn-success" *ngIf="isAdmin()" (click)="openInviteModal(inviteContent)">+ Invite Member</button>
                     </div>
                     <div class="card-body">
                         <table class="table table-hover">
@@ -172,54 +144,44 @@
                                     <th>Email</th>
                                     <th>Role</th>
                                     <th>Status</th>
-                                    @if(isAdmin()) {
-                                        <th>Actions</th>
-                                    }
+                                    <th *ngIf="isAdmin()">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @for (member of members; track $index) {
-                                    <tr>
-                                        <td>{{$index + 1}}</td>
-                                        <td>{{member.name}}</td>
-                                        <td>{{member.email}}</td>
-                                        <td>
-                                            @if(isAdmin() && member.email !== currentUserEmail) {
-                                                <select class="form-select form-select-sm" 
-                                                        [value]="member.role"
-                                                        (change)="updateMemberRole(member.email, $any($event.target).value)">
-                                                    <option value="ADMIN">Admin</option>
-                                                    <option value="MEMBER">Member</option>
-                                                    <option value="OBSERVER">Observer</option>
-                                                </select>
-                                            } @else {
-                                                <span class="badge" [ngClass]="getRoleClass(member.role)">
-                                                    {{member.role}}
-                                                </span>
-                                            }
-                                        </td>
-                                        <td>
-                                            <span class="badge" [ngClass]="getStatusClass(member.status)">
-                                                {{member.status}}
-                                            </span>
-                                        </td>
-                                        @if(isAdmin()) {
-                                            <td>
-                                                @if(member.email !== currentUserEmail) {
-                                                    <button class="btn btn-sm btn-outline-danger" 
-                                                            (click)="removeMember(member.email)">
-                                                        Remove
-                                                    </button>
-                                                }
-                                            </td>
-                                        }
-                                    </tr>
-                                }
+                                <tr *ngFor="let member of members; let i = index">
+                                    <td>{{i + 1}}</td>
+                                    <td>{{member.name}}</td>
+                                    <td>{{member.email}}</td>
+                                    <td>
+                                        <select class="form-select form-select-sm" 
+                                                *ngIf="isAdmin() && member.email !== currentUserEmail"
+                                                [value]="member.role"
+                                                (change)="updateMemberRole(member.email, $any($event.target).value)">
+                                            <option value="ADMIN">Admin</option>
+                                            <option value="MEMBER">Member</option>
+                                            <option value="OBSERVER">Observer</option>
+                                        </select>
+                                        <span class="badge" [ngClass]="getRoleClass(member.role)" 
+                                              *ngIf="!isAdmin() || member.email === currentUserEmail">
+                                            {{member.role}}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge" [ngClass]="getStatusClass(member.status)">
+                                            {{member.status}}
+                                        </span>
+                                    </td>
+                                    <td *ngIf="isAdmin()">
+                                        <button class="btn btn-sm btn-outline-danger" 
+                                                *ngIf="member.email !== currentUserEmail"
+                                                (click)="removeMember(member.email)">
+                                            Remove
+                                        </button>
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
-                        @if(members.length === 0) {
-                            <p class="text-muted text-center">No members yet. Invite someone to get started!</p>
-                        }
+                        <p class="text-muted text-center" *ngIf="members.length === 0">No members yet</p>
                     </div>
                 </div>
             </ng-template>
@@ -238,11 +200,11 @@
         <form [formGroup]="taskForm">
             <div class="mb-3">
                 <label class="form-label">Task Title *</label>
-                <input type="text" class="form-control" formControlName="taskName" [readonly]="isEdit" placeholder="Enter task title">
+                <input type="text" class="form-control" formControlName="taskName" [readonly]="isEdit">
             </div>
             <div class="mb-3">
                 <label class="form-label">Description *</label>
-                <textarea class="form-control" formControlName="taskDescription" rows="3" placeholder="Describe the task"></textarea>
+                <textarea class="form-control" formControlName="taskDescription" rows="3"></textarea>
             </div>
             <div class="row">
                 <div class="col-6 mb-3">
@@ -280,7 +242,7 @@
 <!-- Invite Modal -->
 <ng-template #inviteContent let-modal>
     <div class="modal-header">
-        <h4 class="modal-title">Invite Member to Project</h4>
+        <h4 class="modal-title">Invite Member</h4>
         <button type="button" class="btn-close" (click)="modal.dismiss()"></button>
     </div>
     <div class="modal-body">
@@ -288,30 +250,25 @@
             <div class="mb-3">
                 <label class="form-label">Email Address *</label>
                 <input type="email" class="form-control" formControlName="email" placeholder="user@example.com">
-                <small class="text-muted">The user must already be registered in the system</small>
+                <small class="text-muted">User must be registered</small>
             </div>
             <div class="mb-3">
                 <label class="form-label">Role *</label>
                 <select class="form-select" formControlName="role">
-                    <option value="MEMBER">Member - Can create and modify tasks</option>
-                    <option value="OBSERVER">Observer - Read-only access</option>
-                    <option value="ADMIN">Admin - Full access including member management</option>
+                    <option value="MEMBER">Member</option>
+                    <option value="OBSERVER">Observer</option>
+                    <option value="ADMIN">Admin</option>
                 </select>
-            </div>
-            <div class="alert alert-info">
-                <strong>Note:</strong> An email notification will be sent to invite the user.
             </div>
         </form>
     </div>
     <div class="modal-footer">
         <button type="button" class="btn btn-secondary" (click)="modal.dismiss()">Cancel</button>
-        <button type="button" class="btn btn-success" (click)="inviteMember()" [disabled]="inviteForm.invalid">
-            Send Invitation
-        </button>
+        <button type="button" class="btn btn-success" (click)="inviteMember()" [disabled]="inviteForm.invalid">Send Invitation</button>
     </div>
 </ng-template>
 
-<!-- Assign Task Modal -->
+<!-- Assign Modal -->
 <ng-template #assignContent let-modal>
     <div class="modal-header">
         <h4 class="modal-title">Assign Task</h4>
@@ -326,63 +283,48 @@
             <div class="mb-3">
                 <label class="form-label">Assign To *</label>
                 <select class="form-select" formControlName="userEmail">
-                    <option value="">Select a team member...</option>
-                    @for (member of getAcceptedMembers(); track $index) {
-                        <option [value]="member.email">{{member.name}} ({{member.email}}) - {{member.role}}</option>
-                    }
+                    <option value="">Select member...</option>
+                    <option *ngFor="let member of getAcceptedMembers()" [value]="member.email">
+                        {{member.name}} ({{member.email}})
+                    </option>
                 </select>
-            </div>
-            <div class="alert alert-info">
-                <strong>Note:</strong> An email notification will be sent to the assigned user.
             </div>
         </form>
     </div>
     <div class="modal-footer">
         <button type="button" class="btn btn-secondary" (click)="modal.dismiss()">Cancel</button>
-        <button type="button" class="btn btn-primary" (click)="assignTask()" [disabled]="assignForm.invalid">
-            Assign & Notify
-        </button>
+        <button type="button" class="btn btn-primary" (click)="assignTask()" [disabled]="assignForm.invalid">Assign</button>
     </div>
 </ng-template>
 
-<!-- Task History Modal -->
+<!-- History Modal -->
 <ng-template #historyContent let-modal>
     <div class="modal-header">
         <h4 class="modal-title">Task History</h4>
         <button type="button" class="btn-close" (click)="modal.dismiss()"></button>
     </div>
     <div class="modal-body">
-        @if(taskHistory.length > 0) {
-            <div class="table-responsive">
-                <table class="table table-sm table-striped">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Field</th>
-                            <th>Old Value</th>
-                            <th>New Value</th>
-                            <th>Modified By</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @for (entry of taskHistory; track $index) {
-                            <tr>
-                                <td><small>{{entry.modifiedAt}}</small></td>
-                                <td>{{entry.fieldName}}</td>
-                                <td><span class="text-danger">{{entry.oldValue || '-'}}</span></td>
-                                <td><span class="text-success">{{entry.newValue || '-'}}</span></td>
-                                <td><small>{{entry.modifiedByEmail}}</small></td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        } @else {
-            <div class="text-center py-4">
-                <p class="text-muted mb-0">No history available for this task.</p>
-                <small class="text-muted">Changes will appear here after modifications.</small>
-            </div>
-        }
+        <table class="table table-sm" *ngIf="taskHistory.length > 0">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Field</th>
+                    <th>Old</th>
+                    <th>New</th>
+                    <th>By</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let entry of taskHistory">
+                    <td><small>{{entry.modifiedAt}}</small></td>
+                    <td>{{entry.fieldName}}</td>
+                    <td class="text-danger">{{entry.oldValue || '-'}}</td>
+                    <td class="text-success">{{entry.newValue || '-'}}</td>
+                    <td><small>{{entry.modifiedByEmail}}</small></td>
+                </tr>
+            </tbody>
+        </table>
+        <p class="text-muted text-center" *ngIf="taskHistory.length === 0">No history</p>
     </div>
     <div class="modal-footer">
         <button type="button" class="btn btn-secondary" (click)="modal.dismiss()">Close</button>

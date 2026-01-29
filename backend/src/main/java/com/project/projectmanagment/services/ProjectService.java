@@ -320,7 +320,7 @@ public class ProjectService {
 
         List<UserEntity> users = userRepo.findByUserIdIn(userIds);
 
-        List<Map<String, Object>> memberList = members.stream().map(member -> {
+                List<Map<String, Object>> memberList = members.stream().map(member -> {
             Map<String, Object> memberInfo = new HashMap<>();
             Optional<UserEntity> user = users.stream()
                 .filter(u -> u.getUserId().equals(member.getUserIdFK()))
