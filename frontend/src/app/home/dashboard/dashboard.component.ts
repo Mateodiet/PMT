@@ -24,7 +24,7 @@ export class DashboardComponent {
 
   ngOnInit() {
     this.getProjects();
-    this.getTaskTodo();
+    this.getTasksTodo();
     this.getTaskProg();
     this.getTaskDone();
   }
@@ -37,7 +37,7 @@ export class DashboardComponent {
     });
   }
 
-  getTaskTodo() {
+  getTasksTodo() {
     this.userService.getDashboardTasks('TODO').subscribe({
       next: res => {
         this.todoCount = res?.data?.count || '0';

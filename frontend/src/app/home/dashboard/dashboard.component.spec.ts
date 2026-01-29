@@ -9,7 +9,13 @@ describe('DashboardComponent', () => {
   let userServiceSpy: jasmine.SpyObj<UserService>;
 
   beforeEach(async () => {
-    userServiceSpy = jasmine.createSpyObj('UserService', ['getDashboardData', 'getDashboardTasks']);
+    userServiceSpy = jasmine.createSpyObj('UserService', [
+      'getDashboardData',
+      'getDashboardTasks'
+    ]);
+
+    userServiceSpy.getDashboardData.and.returnValue(of({ data: { count: '5' } }));
+    userServiceSpy.getDashboardTasks.and.returnValue(of({ data: { count: '3', projectList: [] } }));
 
     await TestBed.configureTestingModule({
       imports: [DashboardComponent],
@@ -18,91 +24,96 @@ describe('DashboardComponent', () => {
       ]
     }).compileComponents();
 
-    // Setup default responses
-    userServiceSpy.getDashboardData.and.returnValue(of({ data: { count: '5' } }));
-    userServiceSpy.getDashboardTasks.and.returnValue(of({ data: { count: '3' } }));
-
     fixture = TestBed.createComponent(DashboardComponent);
     component = fixture.componentInstance;
   });
 
-  // Test 1: Création
   it('should create', () => {
     expect(component).toBeTruthy();
   });
 
-  // Test 2: ngOnInit appelle toutes les méthodes
-  it('should call all data methods on init', fakeAsync(() => {
+  it('should initialize with default values', () => {
+    expect(component.projectCount).toBe('0');
+    expect(component.todoCount).toBe('0');
+    expect(component.progCount).toBe('0');
+    expect(component.doneCount).toBe('0');
+  });
+
+  it('should call all data fetching methods on init', fakeAsync(() => {
     fixture.detectChanges();
     tick();
-    
+
     expect(userServiceSpy.getDashboardData).toHaveBeenCalled();
     expect(userServiceSpy.getDashboardTasks).toHaveBeenCalledWith('TODO');
     expect(userServiceSpy.getDashboardTasks).toHaveBeenCalledWith('IN_PROGRESS');
     expect(userServiceSpy.getDashboardTasks).toHaveBeenCalledWith('DONE');
   }));
 
-  // Test 3: getProjects met à jour projectCount
-  it('should update projectCount on getProjects', fakeAsync(() => {
-    userServiceSpy.getDashboardData.and.returnValue(of({ data: { count: '10' } }));
-    
+  it('should get projects count', fakeAsync(() => {
     component.getProjects();
     tick();
-    
-    expect(component.projectCount).toBe('10');
+
+    expect(component.projectCount).toBe('5');
   }));
 
-  // Test 4: getTasktodo met à jour todoCount
-  it('should update todoCount on getTasktodo', fakeAsync(() => {
-    userServiceSpy.getDashboardTasks.and.returnValue(of({ data: { count: '7' } }));
-    
-    component.getTasktodo();
+  it('should get TODO tasks', fakeAsync(() => {
+    userServiceSpy.getDashboardTasks.and.returnValue(of({ 
+      data: { count: '10', projectList: [{ taskName: 'Task1' }] } 
+    }));
+
+    component.getTasksTodo();
     tick();
-    
-    expect(component.todoCount).toBe('7');
+
+    expect(component.todoCount).toBe('10');
+    expect(component.todoTasks.length).toBe(1);
   }));
 
-  // Test 5: getTaskProg met à jour progCount
-  it('should update progCount on getTaskProg', fakeAsync(() => {
-    userServiceSpy.getDashboardTasks.and.returnValue(of({ data: { count: '4' } }));
-    
+  it('should get IN_PROGRESS tasks', fakeAsync(() => {
+    userServiceSpy.getDashboardTasks.and.returnValue(of({ 
+      data: { count: '7', projectList: [{ taskName: 'Task2' }] } 
+    }));
+
     component.getTaskProg();
     tick();
-    
-    expect(component.progCount).toBe('4');
+
+    expect(component.progCount).toBe('7');
+    expect(component.progTasks.length).toBe(1);
   }));
 
-  // Test 6: getTaskDone met à jour doneCount
-  it('should update doneCount on getTaskDone', fakeAsync(() => {
-    userServiceSpy.getDashboardTasks.and.returnValue(of({ data: { count: '12' } }));
-    
+  it('should get DONE tasks', fakeAsync(() => {
+    userServiceSpy.getDashboardTasks.and.returnValue(of({ 
+      data: { count: '15', projectList: [{ taskName: 'Task3' }] } 
+    }));
+
     component.getTaskDone();
     tick();
-    
-    expect(component.doneCount).toBe('12');
+
+    expect(component.doneCount).toBe('15');
+    expect(component.doneTasks.length).toBe(1);
   }));
 
-  // Test 7: Appel avec le bon paramètre pour TODO
-  it('should call getDashboardTasks with TODO parameter', fakeAsync(() => {
-    component.getTasktodo();
+  it('should handle null response gracefully for projects', fakeAsync(() => {
+    userServiceSpy.getDashboardData.and.returnValue(of({ data: null }));
+
+    component.getProjects();
     tick();
-    
-    expect(userServiceSpy.getDashboardTasks).toHaveBeenCalledWith('TODO');
+
+    expect(component.projectCount).toBe('0');
   }));
 
-  // Test 8: Appel avec le bon paramètre pour IN_PROGRESS
-  it('should call getDashboardTasks with IN_PROGRESS parameter', fakeAsync(() => {
-    component.getTaskProg();
+  it('should handle null response gracefully for tasks', fakeAsync(() => {
+    userServiceSpy.getDashboardTasks.and.returnValue(of({ data: null }));
+
+    component.getTasksTodo();
     tick();
-    
-    expect(userServiceSpy.getDashboardTasks).toHaveBeenCalledWith('IN_PROGRESS');
+
+    expect(component.todoCount).toBe('0');
+    expect(component.todoTasks).toEqual([]);
   }));
 
-  // Test 9: Appel avec le bon paramètre pour DONE
-  it('should call getDashboardTasks with DONE parameter', fakeAsync(() => {
-    component.getTaskDone();
-    tick();
-    
-    expect(userServiceSpy.getDashboardTasks).toHaveBeenCalledWith('DONE');
-  }));
+  it('should have empty task arrays initially', () => {
+    expect(component.todoTasks).toEqual([]);
+    expect(component.progTasks).toEqual([]);
+    expect(component.doneTasks).toEqual([]);
+  });
 });
